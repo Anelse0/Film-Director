@@ -27,7 +27,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 |---|---|---|
 | S1 资源读取 | `references/stage-1-intake.md` | `01_bible/assets.md`（资产登记表）＋ 资源缺口清单 |
 | S2 任务识别 | `references/stage-1-intake.md` §任务识别 | 任务类型 · 入口阶段 · 生产单元数 · 锁定/无锁定判定 |
-| S3a 概念 | `references/stage-2a-concept.md` | `02_script/concept.md`（三候选前提 / 主控句 / 三问 / 反套路） |
+| S3a 概念 | `references/concept-generation.md` ＋ `references/stage-2a-concept.md` | `02_script/concept.md`（三候选前提 / 主控句 / 三问 / 反套路） |
 | S3b 故事与场景 | `references/stage-2-story-scene.md` ＋ `references/director-lenses.md` | `02_script/scene-XX.md`（目标 / 阻力 / 转折 / 节拍表 / 视觉方案 / 透镜 / 视点） |
 | S4 台词与表演 | `references/stage-3-dialogue-performance.md` ＋ `references/externalization-lexicon.md` | 节拍表补齐台词、潜台词、外化动作 |
 | S5 导演与分镜 | `references/stage-4-directing-storyboard.md` ＋ `references/director-lenses.md` ＋ `references/camera-vocabulary.md` | `03_shots/scene-XX-clipYY.md`（分镜卡，五层分离） |
@@ -46,7 +46,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 
 | 模式 | 触发词 | 跑到哪 | 只读 | 只写 | 交付形式 |
 |---|---|---|---|---|---|
-| **概念** | 构思、概念、方向、想法、灵感、几个版本、帮我想 | S1（轻量登记）→ S3a，**停** | `stage-2a-concept.md`；`director-lenses.md` 只看末尾速查表；`anti-mechanical.md` §1–2 | `02_script/concept.md` | 对话里给 3 个候选 + 推荐 + 每个候选"目标格式下拍什么"一行；等用户选 |
+| **概念** | 构思、概念、方向、想法、灵感、几个版本、帮我想 | S1（轻量登记）→ S3a，**停**（无种子时先停一次问三句） | `concept-generation.md`；`stage-2a-concept.md`；`director-lenses.md` 只看末尾速查表 | `02_script/concept.md` | 对话里给 3 个候选 + 推荐 + 每个候选"目标格式下拍什么"一行；等用户选 |
 | **单阶段** | 用户明确指定某阶段（拆分镜、改台词、转 Prompt、体检） | 只跑该阶段，**停** | 该阶段行 | 该阶段产物 | 该阶段产物 + 下一阶段需要用户提供什么 |
 | **停靠式**（默认） | 写一个短片 / 场景，且未说"一次跑完" | S3a **停** → 选定后 S3b–S5 **停** → 确认后 S6–S7 | 按阶段表 | 按阶段表 | 每个停靠点一次简短交付 |
 | **全流程** | 直接出 Prompt、一次跑完、不用问我、快出 | S1 → S7 不停 | 按阶段表 | 全部 | 默认输出契约 |
@@ -108,6 +108,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 9. **导演、影片、摄影师名字永远不进 Prompt。** 透镜（`director-lenses.md`）只影响设计，进 Prompt 的只有可观察量。
 10. **每个手法有理由，理由指回场景问题。** 透镜、运镜、外化动作旁边写"因为这场戏……"；写不出就删。相邻场景不用同一主透镜；同一 clip 内同一外化短语 ≤ 2 次、同一运镜连续 ≤ 2 镜。
 11. **品味门**：S6 之前每个 clip 回答三问（记住的画面 / 意外的一秒 / 可见的选择），答不出不编译。
+12. **概念必须走五步协议**（`references/concept-generation.md`：禁用 → 种子 → 情境 → 评分 → 发展）。没有用户种子时先问三句；模型不得代写种子，除非用户明确说"你来"并在候选里标注。
 
 ## 默认输出契约
 

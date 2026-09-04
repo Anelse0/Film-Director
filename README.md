@@ -23,7 +23,8 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `SKILL.md` | 入口：路由、五层分离、硬规则、输出契约 |
 | `references/seedance-2.5-capabilities.md` | 写任何模型能力/参数前；事实分级表 |
 | `references/stage-1-intake.md` | S1 / S2 |
-| `references/stage-2a-concept.md` | S3a 概念：前提 / 主控句 / 三问 / 反套路 |
+| `references/concept-generation.md` | S3a 概念怎么来：禁用 → 种子 → 情境 → 评分 → 发展 |
+| `references/stage-2a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
 | `references/stage-2-story-scene.md` | S3b |
 | `references/director-lenses.md` | S3b / S5：18 个导演透镜（问题 → 可观察量 → 误用信号），克制 / 外放两侧均衡 |
 | `references/anti-mechanical.md` | 全程：防机械套用规则与品味门 |
