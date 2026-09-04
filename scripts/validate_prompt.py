@@ -36,6 +36,7 @@
   W16 多文件模式：相邻 clip 同一主透镜 / 某透镜占比 > 1/3
   W17 同一运镜连续 ≥ 3 镜
   W18 外化词典示例短语被逐字照抄（未改成角色专属版本）
+  W19 一句台词做多件事（引号内 ≥ 3 个句号 / 叹号 / 问号）—— 因果链"一件事测试"的粗略代理
 
 多文件用法:
     python3 validate_prompt.py clip01.prompt.md clip02.prompt.md ...
@@ -312,6 +313,10 @@ def validate(path, duration_override=None):
                 warn("W11", f"镜头{no} 有 {len(speakers)} 个说话人（{', '.join(speakers)}），确认不是同框同时说话")
             if not re.search(r"闭着嘴|抿嘴|不出声|嘴[^，。]{0,4}闭|mouth (?:stays )?closed|lips (?:pressed|closed)", body) and len(speakers) >= 1 and re.search(r"[两二]人|B|另一|对方|listener|the other", body):
                 warn("W05", f"镜头{no} 有台词但未写非说话者嘴部状态")
+        for q in quotes:
+            if len(re.findall(r"[。！？!?]", q)) >= 3:
+                warn("W19", f"镜头{no} 台词「{q[:20]}…」一句做了多件事（≥ 3 个终止符）；拆开或删一件（causal-chain 一件事测试）")
+                break
         for pat in SPEECH_LEAK:
             if re.search(pat, body):
                 warn("W06", f"镜头{no} 疑似引号外的台词描述（模型只念引号内文字）")

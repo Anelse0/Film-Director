@@ -38,7 +38,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 ▮ → S3b 故事开发 ▮ 
 
 **只读当前阶段需要的文件。** 概念模式只读两三个文件。
 **按类型叠加**：基调为动作 / 悬疑恐怖 / UGC 广告 / 蒙太奇时，S3b–S5 加读 `references/genre-packs.md` 对应一包。
-**全程生效**：`references/anti-mechanical.md`。
+**全程生效**：`references/anti-mechanical.md` ＋ `references/causal-chain.md`（任何产物先写链再写正文）。
 
 ## 交付原则：对话是默认，落盘是显式动作
 
@@ -115,6 +115,7 @@ ip-slug = 用户给的 IP 名或概念选定后的标题；story-slug = 格式 +
 13. **故事先于剧本，剧本先于分镜。** S3b 必须选一个主传统（`references/screenwriting-traditions.md`）、写世界观三条硬规则、人物六格、情绪温度表、场景清单；S3c 每场四问 + 节拍表 + 剧本页；两者各停一次。跳过任一层需要用户明确的"单 clip"指示。
 14. **S6 之后必须跑校验**：`python3 scripts/validate_prompt.py <prompt.md>`，ERROR 必修，WARN 逐条说明。
 15. **需求参数优先于默认美学。** 台词、表演、分镜、结构、模型执行约束都是场景参数卡的函数（`references/scene-parameters.md`）；"≤ 15 字、不解释情绪"只是内收低强度的取值，不是通用规则。需求写了"吵架 / 高情绪"而回显仍是内收 = 错误。
+16. **因果链先于产物。** 每个候选 / 场景 / 台词 / 镜头先写一行"上一步对他做了什么 → 他要什么 → 所以 ____"，再写正文；交付前过三测（遮住 / 删除 / 一件事）。规则表是允许不是清单，一场戏 ≤ 3 个目标项。特征齐全但句与句不推 = 不交付（`references/causal-chain.md`）。
 
 ## 默认输出契约
 
