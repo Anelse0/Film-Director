@@ -1,0 +1,116 @@
+---
+name: film-seedance-director
+description: 影视创作到 Seedance 2.5 生产的端到端工作流。把故事/场景/角色/世界观资源，经过编剧、台词（人话与张力）、表演外化、导演与分镜设计，稳定编译为 Seedance 2.5 可执行的镜头 Prompt，并做连续性与质量检查。凡涉及：写场景/短片剧本、设计台词与表演、拆分镜与镜头表、把已有分镜或剧本转成 Seedance 2.5 Prompt、规划多段 30 秒生产单元、视频编辑/延长/首尾帧任务的 Prompt、成片问题定位与修正 Prompt 时使用。单张图片生成、非视频类文案不使用。
+---
+
+# Film → Seedance 2.5 Director
+
+一句话：**先做导演决策，再把决策翻译成模型能看见的东西，最后才写 Prompt。**
+
+Seedance 2.5 只能执行"可观察"的信息：动作、表情、视线、空间关系、节奏、摄影变化、声音。它看不见"悲伤"，只看得见"手停在门把上三秒没有拧"。本 Skill 的全部设计都围绕这个约束：创作阶段允许抽象，编译阶段一律外化。
+
+## 工作边界
+
+- **做**：故事与场景创作、台词与表演设计、导演与分镜设计、Seedance 2.5 Prompt 编译（文生 / 参考生 / 关键帧 / 宫格分镜 / 首尾帧 / 编辑 / 延长）、连续性与质量检查、成片问题定位。
+- **不做**：不调用模型 API（产出的是可直接粘贴到火山方舟 / 即梦 / 第三方平台的 Prompt 与参数建议）；不虚构模型参数；不替用户决定与任务无关的美术风格。
+- **事实分级**（全 Skill 通用，写任何模型能力时必须带标签）：`[官方]` 火山方舟指南原文 · `[第三方]` 有出处的外部经验 · `[推论]` 本 Skill 的设计推论 · `[未验证]` 未核实假设。能力表见 `references/seedance-2.5-capabilities.md`。
+
+## 七阶段流水线
+
+```
+S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S4 台词与表演 → S5 导演与分镜 → S6 Prompt 编译 → S7 连续性与质量检查
+```
+
+每阶段有独立产物，写入项目目录（约定见下）。**可以从任何阶段进入**：用户已有剧本就从 S5 开始，已有分镜就从 S6 开始，已有成片要改就走 S2 的"编辑/延长"分支直达 S6。
+
+| 阶段 | 读什么 | 产出什么 |
+|---|---|---|
+| S1 资源读取 | `references/stage-1-intake.md` | `01_bible/assets.md`（资产登记表）＋ 资源缺口清单 |
+| S2 任务识别 | `references/stage-1-intake.md` §任务识别 | 任务类型 · 入口阶段 · 生产单元数 · 锁定/无锁定判定 |
+| S3a 概念 | `references/stage-2a-concept.md` | `02_script/concept.md`（三候选前提 / 主控句 / 三问 / 反套路） |
+| S3b 故事与场景 | `references/stage-2-story-scene.md` ＋ `references/director-lenses.md` | `02_script/scene-XX.md`（目标 / 阻力 / 转折 / 节拍表 / 视觉方案 / 透镜 / 视点） |
+| S4 台词与表演 | `references/stage-3-dialogue-performance.md` ＋ `references/externalization-lexicon.md` | 节拍表补齐台词、潜台词、外化动作 |
+| S5 导演与分镜 | `references/stage-4-directing-storyboard.md` ＋ `references/director-lenses.md` ＋ `references/camera-vocabulary.md` | `03_shots/scene-XX-clipYY.md`（分镜卡，五层分离） |
+| S6 Prompt 编译 | `references/stage-5-prompt-compiler.md` ＋ `templates/prompt-templates.md` | `04_prompts/scene-XX-clipYY.prompt.md`（最终 Prompt ＋ 参数建议） |
+| S7 检查 | `references/stage-6-qa-continuity.md` ＋ `scripts/validate_prompt.py` | `05_qa/scene-XX-clipYY.qa.md`（校验结果 ＋ 修正）；有成片时追加一行到 `references/validation-log.md` |
+
+**只读当前阶段需要的文件。** 不要为了完整性一次加载全部参考。
+
+**按类型叠加**：概念卡基调为动作 / 悬疑恐怖 / UGC 广告 / 蒙太奇时，S3b–S5 加读 `references/genre-packs.md` 对应一包。
+
+**全程生效**：`references/anti-mechanical.md`（选择必须有理由、反向测试、多样性约束、品味门三问）。S3a–S5 任何一处做了"默认选择"，先过一遍它的 §1–§2。
+
+## 五层分离（贯穿 S5–S7 的核心规则）
+
+每个镜头的信息分成五层，各层职责不同，**只有 C 层会进入 Prompt**：
+
+| 层 | 名称 | 内容 | 读者 |
+|---|---|---|---|
+| A | 创作决策 | 为什么这样拍：意图、潜台词、这一镜要让观众知道/感到什么 | 导演/编剧 |
+| B | 分镜说明 | 供人阅读的镜头描述，可以用行话、可以抽象 | 剧组/协作者 |
+| C | 可观察信息 | 模型能执行的：谁、在哪、面朝哪、做什么、看哪、说什么、镜头怎么动、光从哪来、什么声音、起止状态 | 编译器 |
+| D | 最终 Prompt | 由 C 层按 Seedance 2.5 语法编译出的文本 | 模型 |
+| E | 生产元数据 | 任务类型、素材编号与角色、ratio/duration/输出格式、上游片段、版本、抽卡记录 | 生产管理 |
+
+**外化规则**：A/B 层的任何情绪词（悲伤、紧张、释然……）进入 C 层前必须转换为以下至少一种可观察量：动作 · 表情（具体肌肉/部位）· 视线 · 空间关系与距离 · 节奏（快慢/停顿/时长）· 摄影变化（景别/运镜/焦点）· 声音。查 `references/externalization-lexicon.md`。
+
+## 项目目录约定
+
+在用户指定的工作目录（默认当前目录）下创建：
+
+```
+<project>/
+  00_brief.md                 用户原始需求 + 任务识别结果
+  01_bible/                   world.md · characters.md · locations.md · assets.md
+  02_script/                  scene-01.md …（A 层 + B 层）
+  03_shots/                   scene-01-clip01.md …（分镜卡，A–E 五层）
+  04_prompts/                 scene-01-clip01.prompt.md …（D 层 + E 层）
+  05_qa/                      scene-01-clip01.qa.md …
+```
+
+一个 **clip（生产单元）= 一次 Seedance 2.5 生成任务 ≤ 30 秒**。一个场景可拆成多个 clip；clip 之间的衔接策略在 S5 决定（延长 / 尾帧接首帧 / 同素材重新生成），见 `references/stage-4-directing-storyboard.md` §生产单元规划。
+
+模板在 `templates/`：`project-bible.md` · `scene-card.md` · `shot-card.md` · `prompt-templates.md` · `asset-registry.md`。
+
+完整走查示例（从一句话到通过校验的 Prompt）：`examples/example-01-kitchen-keys.md` 与 `examples/example-01-kitchen-keys.prompt.md`。首次使用或不确定产物长什么样时先读它。
+
+同一场戏用三个不同透镜重做的对照：`examples/example-02-one-scene-three-lenses.md`。判断透镜是否"真的改变了设计而不是换了包装"时读它。
+
+## 硬规则（任何阶段不可违反）
+
+1. **不虚构模型能力。** 写能力/参数必须带事实标签；`[未验证]` 项在 Prompt 中只能作为可选尝试并注明。
+2. **素材编号按上传顺序绑定，一素材一职责。** Prompt 开头必须有【素材绑定】块；写明"参考什么、不参考什么"。不依赖图片里的文字来指代角色。`[官方]`
+3. **时间戳整数秒、连续、从 0 开始、总和等于 duration。** 不用时间戳控制频次。`[官方]`
+4. **负向描述只用于字幕和音频**（不要字幕 / 无 bgm / 不要人声）。画面内容一律正向描述；要排除的东西改写为"画面里有什么"。`[官方]`
+5. **台词逐字加引号、标注说话人、标注语言。** 台词有时间窗；非说话时段写明嘴部状态。`[官方示例] + [第三方]`
+6. **每个镜头写景别 + 一个主要运镜 + 起止状态。** 冷门术语必须"术语 + 描述性解释"。`[官方]`
+7. **每个 clip 的 Prompt 自足。** 模型没有跨任务记忆；角色外观、空间、光源、声音要求在每个 clip 里重写。`[推论]`
+8. **S6 之后必须跑校验脚本**：`python3 scripts/validate_prompt.py <prompt.md>`，错误必须修正，警告必须逐条说明保留或修改的理由。
+9. **导演、影片、摄影师名字永远不进 Prompt。** 透镜（`director-lenses.md`）只影响设计，进 Prompt 的只有可观察量。
+10. **每个手法有理由，理由指回场景问题。** 透镜、运镜、外化动作旁边写"因为这场戏……"；写不出就删。相邻场景不用同一主透镜；同一 clip 内同一外化短语 ≤ 2 次、同一运镜连续 ≤ 2 镜。
+11. **品味门**：S6 之前每个 clip 回答三问（记住的画面 / 意外的一秒 / 可见的选择），答不出不编译。
+
+## 默认输出契约
+
+对用户的每次交付，至少包含：
+
+1. 任务识别结果（一行：任务类型 / 入口阶段 / clip 数 / 锁定判定）。
+2. 本次完成阶段的产物文件路径。
+3. 若到达 S6：每个 clip 的最终 Prompt（代码块）＋ 参数建议表（content.role / ratio / duration / 输出格式）＋ 校验结果摘要。
+4. 未验证假设与抽卡风险点（来自 S7）。
+5. 下一步：用户需要提供什么（素材 / 确认 / 成片反馈）。
+
+## 快速路由
+
+| 用户说 | 入口 |
+|---|---|
+| "帮我写一个……的短片 / 场景" | S1 → S3a → 全流程 |
+| "这场戏太平 / 太套路" | S3b 视觉方案 + `director-lenses.md` 速查表 → 反向测试 → 重做 S5 |
+| "这是剧本，帮我拆分镜" | S1 → S2 → S5 |
+| "这是分镜 / 镜头表，转成 Seedance Prompt" | S1 → S2 → S6 |
+| "这段台词太假 / 太直白" | S4 单独运行，产出改写 + 潜台词说明 |
+| "这个成片第 X 秒不对" | S7 定位 → 回到 S5/S6 修正对应镜头 |
+| "把 @视频1 延长 / 改台词 / 换人" | S2 编辑-延长分支 → S6 编辑模板 |
+| "一个镜头，8 秒，快速出" | S2 单镜快车道 → S5（只写一张分镜卡）→ S6 |
+
+不确定入口且结果会实质不同时，只问一个简短问题；否则按最保守解读推进并写明假设。
