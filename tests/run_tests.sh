@@ -37,6 +37,16 @@ out=$($V examples/example-02-lens-B-haneke.prompt.md "$tmp/clip02.prompt.md")
 echo "$out" | grep -q "W16"; check "multi-file W16" $? ""
 rm -rf "$tmp"
 
+C="python3 scripts/validate_concept.py"
+out=$($C examples/good-concept.md); rc=$?
+check "good-concept exits 0" $rc "$out"
+out=$($C examples/bad-concept.md); rc=$?
+[ $rc -eq 1 ]; check "bad-concept exits 1" $? "rc=$rc"
+for code in C03 C04 C05 C07; do
+  echo "$out" | grep -q "$code"; check "bad-concept has $code" $? ""
+done
+grep -q "^## 工作示例\|^## 附：骰子" references/concept-generation.md && { echo "FAIL concept-generation.md 仍含工作示例正文"; fail=1; } || echo "PASS concept-generation.md has no worked examples"
+
 # 结构：SKILL.md frontmatter 与目录名一致
 grep -q "^name: film-seedance-director" SKILL.md; check "SKILL.md name matches dir" $? ""
 # 所有 SKILL.md 引用的 references/templates 文件存在

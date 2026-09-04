@@ -2,6 +2,20 @@
 
 格式遵循 Keep a Changelog；版本号遵循语义化版本。
 
+## [1.10.0] - 2026-09-04
+
+实际使用中发现两个问题：D1 查询逐字照抄示例并收窄到"分手"；概念未选定就落盘并预选 top candidate。根因相同：概念模式被按生产阶段执行。本版改的是概念模式的整体契约。
+
+### Added
+- `concept-generation.md`「概念模式契约」：选定前不落盘、不预选（三候选各做 D2）、示例不在任务文件里、过程可见（消息开头 D0 处境行 + D1 领域行）、只停一次；交付前自检清单。
+- D0 内核展开：≥ 6 个不同处境、八条通用轴、默认处境最多占一条查询；D1 五种查询形式，两条查询共用词 < 50%。
+- `scripts/validate_concept.py`（C01–C07）与 `examples/good-concept.md` / `bad-concept.md`；回归测试加 7 项。
+- `anti-mechanical.md` §9 示例不是模板。
+
+### Changed
+- 工作示例与骰子表从 `concept-generation.md` 移到 `examples/concept-worked-examples.md`，概念模式默认不读。
+- SKILL.md 运行模式表：概念模式落盘列改为"无"；S3a 停靠规则改为"不创建任何文件"。
+
 ## [1.9.0] - 2026-09-04
 
 修正 1.8.0 的设计错误：搜索被放在下游核实模型自选的领域，领域池仍是模型默认。

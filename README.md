@@ -14,7 +14,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 
 可从任意阶段进入（有剧本从 S5，有分镜从 S6，改成片从 S7）。
 
-四种运行模式：**概念**（只到 S3a，给 3 候选后停）、**单阶段**、**停靠式**（默认，S3a 与 S5 后停下等确认）、**全流程**（用户说"一次跑完"）。见 SKILL.md「运行模式与停靠点」。
+四种运行模式：**概念**（只到 S3a，对话里给 3 候选后停，选定前不落盘）、**单阶段**、**停靠式**（默认，S3a 与 S5 后停下等确认）、**全流程**（用户说"一次跑完"）。见 SKILL.md「运行模式与停靠点」。
 
 ## 文件地图
 
@@ -23,7 +23,9 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `SKILL.md` | 入口：路由、五层分离、硬规则、输出契约 |
 | `references/seedance-2.5-capabilities.md` | 写任何模型能力/参数前；事实分级表 |
 | `references/stage-1-intake.md` | S1 / S2 |
-| `references/concept-generation.md` | S3a 概念怎么来：禁用 → 种子 → 情境 → 评分 → 发展 |
+| `references/concept-generation.md` | S3a 概念模式契约（选定前不落盘、不预选、过程可见）+ 概念怎么来：禁用 → 种子（含 D0/D1/D2 检索）→ 情境 → 评分 → 发展 |
+| `examples/concept-worked-examples.md` | 概念协议工作示例（概念模式默认不读；禁止复用） |
+| `scripts/validate_concept.py` | 选定落盘后审计概念卡：示例照抄、查询单一、候选重复 |
 | `references/stage-2a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
 | `references/stage-2-story-scene.md` | S3b |
 | `references/director-lenses.md` | S3b / S5：18 个导演透镜（问题 → 可观察量 → 误用信号），克制 / 外放两侧均衡 |
