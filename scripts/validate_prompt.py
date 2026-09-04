@@ -123,7 +123,7 @@ SHOT_RE = re.compile(
 ASSET_REF_RE = re.compile(r"(?:@?图片?|@?视频|@?音频|image|img|video|vid|audio|aud)\s*(\d+)", re.I)
 ASSET_DECL_RE = re.compile(r"(?:@?图片?|@?视频|@?音频|image|img|video|vid|audio|aud)\s*(\d+)(?:\s*[-–至到]\s*(?:图片?|image|img)?\s*(\d+))?", re.I)
 QUOTE_RE = re.compile(r"[“\"]([^”\"]{1,400})[”\"]")
-SPEAKER_RE = re.compile(r"(?:台词\s*[（(]([^)）]{1,20})[)）]|([^\s，。；:：]{1,12})\s*(?:说|says|说道)\s*[（(]?[^:：“\"]{0,40}[:：]?\s*[“\"])")
+SPEAKER_RE = re.compile(r"(?:台词\s*[（(]([^)）]{1,20})[)）]|([^\s，。；:：]{1,12})\s*(?:说|says|说道)\s*[（(]?[^:：“\"。！？]{0,20}[:：]?\s*[“\"])")
 
 
 def find_section(text, key):
@@ -266,6 +266,13 @@ def validate(path, duration_override=None):
     elif not is_edit:
         warn("W08", "未识别到「镜头N（a-bs）」格式的分镜段落")
 
+    # 场景参数卡（E 层「参数」行）决定语速估算与台词占比上限 [推论]：密 / 外放 / 高 → 6 字/s、3.5 词/s、上限 3/4；否则 4 字/s、2.5 词/s、上限 2/3
+    pm = re.search(r"\|\s*参数\s*\|\s*([^|\n]+)\|", text)
+    dense = bool(pm and re.search(r"密|外放|高", pm.group(1)))
+    ZH_RATE, EN_RATE, SPEECH_CAP = (6.0, 3.5, 0.75) if dense else (4.0, 2.5, 2 / 3)
+    if pm:
+        info(f"参数卡：{pm.group(1).strip()}（语速估算 {ZH_RATE:g} 字/s）")
+
     # per-shot checks
     total_speech_chars = 0
     total_speech_words = 0
@@ -298,7 +305,7 @@ def validate(path, duration_override=None):
             en_words = sum(len(q.split()) for q in quotes if cjk_len(q) == 0)
             total_speech_chars += zh
             total_speech_words += en_words
-            est = zh / 4.0 + en_words / 2.5  # 估算秒数：中文 ~4 字/s，英文 ~2.5 词/s [推论]
+            est = zh / ZH_RATE + en_words / EN_RATE
             if est > length * 0.9:
                 warn("W05", f"镜头{no} 台词约 {est:.1f}s 接近或超过镜长 {length}s")
             if len(speakers) >= 2:
@@ -361,9 +368,9 @@ def validate(path, duration_override=None):
 
     if shots:
         end = shots[-1][2]
-        est_total = total_speech_chars / 4.0 + total_speech_words / 2.5
-        if est_total > end * 2 / 3:
-            warn("W05", f"总台词估时 {est_total:.1f}s > clip 的 2/3（{end * 2 / 3:.1f}s）")
+        est_total = total_speech_chars / ZH_RATE + total_speech_words / EN_RATE
+        if est_total > end * SPEECH_CAP:
+            warn("W05", f"总台词估时 {est_total:.1f}s > clip 的 {SPEECH_CAP:.2f}（{end * SPEECH_CAP:.1f}s）")
         info(f"台词估时 {est_total:.1f}s")
 
     # W01 negatives（跳过参数表行，只扫 Prompt 正文）

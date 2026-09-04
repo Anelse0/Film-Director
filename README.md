@@ -14,7 +14,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 
 可从任意阶段进入（有剧本从 S5，有分镜从 S6，改成片从 S7）。
 
-四种运行模式：**概念**（只到 S3a，对话里给 3 候选后停，选定前不落盘）、**单阶段**、**停靠式**（默认，S3a 与 S5 后停下等确认）、**全流程**（用户说"一次跑完"）。见 SKILL.md「运行模式与停靠点」。
+交付原则：对话是默认，落盘只在停靠确认后或用户明确要求时。运行模式：**概念**（只到 S3a，对话里给 3 候选后停）、**单阶段**、**停靠式**（默认，S3a 与 S5 后停下等确认）、**全流程**（用户说"一次跑完"）。见 SKILL.md「运行模式与停靠点」。
 
 ## 文件地图
 
@@ -26,7 +26,8 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `references/concept-generation.md` | S3a 概念模式契约 + 五步协议（含 D0/D1/D2 检索） |
 | `references/stage-3a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
 | `references/stage-3b-story.md` | S3b 故事开发：主传统 / 世界观 / 人物六格 / 情绪温度表 / 场景清单 |
-| `references/stage-3c-script.md` | S3c 剧本落地：四问 / 节拍表 / 剧本页 / 台词五关与副词规则 / 语域 |
+| `references/stage-3c-script.md` | S3c 剧本落地：四问 / 节拍表 / 剧本页 / 台词通用关与副词规则 |
+| `references/scene-parameters.md` | 场景参数卡：六参数 → 台词 / 表演 / 分镜 / 结构 / 模型执行的规则取值；预设只是参数组合 |
 | `references/screenwriting-traditions.md` | 好莱坞 · 欧洲 · 韩国 × 六维度；按格式选主传统；24 条可迁移规则 |
 | `references/stage-4-performance.md` | S4 表演外化与台词的模型执行约束 |
 | `references/stage-5-directing-storyboard.md` | S5 导演与分镜 |
@@ -38,7 +39,8 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `scripts/validate_prompt.py` | S6 之后必跑 |
 | `examples/example-01-kitchen-keys*.md` | 完整走查 + 通过校验的 Prompt |
 | `examples/example-02-one-scene-three-lenses.md` | 同一场戏三个透镜的对照，含一版通过校验的 Prompt |
-| `examples/example-03-yogurt-comedy*.md` | 喜剧语域走查（三拍 + 反讽落差），通过校验 |
+| `examples/example-03-yogurt-comedy*.md` | 喜剧走查（三拍 + 反讽落差），通过校验 |
+| `examples/example-04-parameters-fight*.md` | 同一套规则，参数卡不同：高强度外放吵架，与示例 01 对照 |
 
 ## 校验脚本
 
