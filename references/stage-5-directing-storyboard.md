@@ -1,6 +1,8 @@
 # S5 导演与分镜设计
 
-产出：`03_shots/scene-XX-clipYY.md`，每个 clip 一个文件，内含若干张分镜卡（模板 `templates/shot-card.md`）。本阶段完成 **A–C 层 + E 层**，D 层留给 S6。
+输入：`03_script/scene-XX.md`（已确认的剧本页 + S4 外化列）。S5 结束必停；停靠时一并交付 S5b 的资产清单。
+
+产出：`04_shots/scene-XX-clipYY.md`，每个 clip 一个文件，内含若干张分镜卡（模板 `templates/shot-card.md`）。本阶段完成 **A–C 层 + E 层**，D 层留给 S6。
 
 ## 5.1 先切生产单元（clip）
 

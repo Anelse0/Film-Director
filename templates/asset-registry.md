@@ -1,4 +1,4 @@
-# 资产登记表（01_bible/assets.md）
+# 资产登记表（<ip>/assets/assets.md）
 
 **编号 = 上传顺序。** 改顺序必须同步改此表与所有 Prompt。
 

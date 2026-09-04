@@ -4,7 +4,7 @@
 
 ---
 
-## S1 资源读取 → `01_bible/assets.md`
+## S1 资源读取 → `<ip>/assets/assets.md`
 
 | ID | 类型 | 绑定 | 参考什么 | 不参考什么 |
 |---|---|---|---|---|
@@ -50,7 +50,7 @@
 
 表演弧 母亲：起点 0s 端碗挡桌 → 触发 9s 女儿拿钥匙 → 峰值 12s 手停在碗沿不动 2 秒 → 收束 15s 侧身让开。
 
-## S5 分镜卡（C 层摘要）→ `03_shots/scene-01-clip01.md`
+## S5 分镜卡（C 层摘要）→ `04_shots/scene-01-clip01.md`
 
 | 镜 | 秒 | 景别/运镜 | 内容 |
 |---|---|---|---|
@@ -61,7 +61,7 @@
 
 轴线：母亲画左，女儿画右，全程不换。主光源：顶灯，暖，从上方偏画左。
 
-## S6 编译 → `04_prompts/scene-01-clip01.prompt.md`
+## S6 编译 → `06_prompts/scene-01-clip01.prompt.md`
 
 见同目录 `example-01-kitchen-keys.prompt.md`。
 

@@ -1,7 +1,7 @@
 # S6 Seedance 2.5 Prompt 编译
 
-输入：`03_shots/scene-XX-clipYY.md`（分镜卡 C 层 + E 层）。
-输出：`04_prompts/scene-XX-clipYY.prompt.md`（D 层 Prompt + E 层参数表）。骨架见 `templates/prompt-templates.md`。
+输入：`04_shots/scene-XX-clipYY.md`（分镜卡 C 层 + E 层）+ `05_assets/asset-plan.md`（已回填）。
+输出：`06_prompts/scene-XX-clipYY.prompt.md`（D 层 Prompt + E 层参数表）。骨架见 `templates/prompt-templates.md`。
 
 编译是**确定性翻译**，不是再创作。C 层没有的信息不能凭空出现在 D 层；D 层出现的每个可观察量都能回溯到某张分镜卡。
 
@@ -27,7 +27,7 @@
 - 关键帧任务：首句必须是 `以图片1至图片N的顺序作为关键帧`。`[官方]`
 - 宫格分镜：`图1 = 故事板分镜，只参考镜头结构、景别与顺序，不渲染格线与文字`。`[官方]` + `[第三方]`
 - 首尾帧走 reference_image 方式时：`图片1为首帧`（不锁画幅）。`[官方]`
-- 无素材的纯文生视频：写 `无参考素材`，然后角色外观锁必须在【起始状态】里完整写出。
+- 无素材的纯文生视频（兜底）：写 `无参考素材`，角色外观锁必须在【起始状态】里完整写出，E 层标"兜底路径"，S7 风险登记跨 clip 不一致。
 
 ### 【总述】
 一句话，≤ 60 字。含时长与画幅："30 秒 16:9 横屏"。
@@ -68,8 +68,9 @@
 
 | 任务 | 差异 | 参数（E 层） |
 |---|---|---|
-| T2V | 无素材绑定；外观锁写全 | ratio 自定 / duration 自定 |
-| R2V 主体参考 | 素材绑定 + 外观锁精简为"与图1一致，补充：…" | ratio 自定 / duration 自定 / role=reference_image |
+| **R2V 主体 + 场景参考（核心路径）** | 素材绑定 + 外观锁精简为"与图1一致，补充：…"；场景写"与图3布局与光一致" | ratio 自定 / duration 自定 / role=reference_image |
+| T2V（兜底） | 只在 S5b 判定无资产且用户接受风险时；无素材绑定；外观锁写全；E 层标"兜底路径" | ratio 自定 / duration 自定 |
+| R2V 主体参考（仅角色图） | 素材绑定 + 外观锁精简为"与图1一致，补充：…" | ratio 自定 / duration 自定 / role=reference_image |
 | R2V 动作/运镜参考 | "严格参考视频1的动作与运镜，顺序一致"，不复述细节 `[官方]` | 同上 / role=reference_video |
 | 关键帧 | 首句固定；每镜写"参考图片N" | 同上；图片按顺序上传 |
 | 宫格分镜 | 素材绑定 + 故事梗概 + 逐格补齐动作/运镜/风格 `[官方]` | 同上 |
@@ -112,4 +113,4 @@
 - 同一角色同一外化短语出现 ≥ 3 次？（W14）
 - 品味门三问答过了？（`anti-mechanical.md` §7）
 
-然后：`python3 scripts/validate_prompt.py 04_prompts/scene-XX-clipYY.prompt.md`
+然后：`python3 scripts/validate_prompt.py 06_prompts/scene-XX-clipYY.prompt.md`

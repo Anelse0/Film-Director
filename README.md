@@ -22,22 +22,17 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 |---|---|
 | `SKILL.md` | 入口：路由、五层分离、硬规则、输出契约 |
 | `references/seedance-2.5-capabilities.md` | 写任何模型能力/参数前；事实分级表 |
-| `references/stage-1-intake.md` | S1 / S2 |
-| `references/concept-generation.md` | S3a 概念模式契约（选定前不落盘、不预选、过程可见）+ 概念怎么来：禁用 → 种子（含 D0/D1/D2 检索）→ 情境 → 评分 → 发展 |
-| `examples/concept-worked-examples.md` | 概念协议工作示例（概念模式默认不读；禁止复用） |
-| `scripts/validate_concept.py` | 选定落盘后审计概念卡：示例照抄、查询单一、候选重复 |
-| `references/stage-2a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
-| `references/stage-2-story-scene.md` | S3b |
-| `references/director-lenses.md` | S3b / S5：18 个导演透镜（问题 → 可观察量 → 误用信号），克制 / 外放两侧均衡 |
-| `references/anti-mechanical.md` | 全程：防机械套用规则与品味门 |
-| `references/genre-packs.md` | 动作 / 悬疑恐怖 / UGC 广告 / 蒙太奇 四个类型包 |
-| `references/validation-log.md` | 成片验证账本：把 [推论] 变成 [已验证] 或 [已推翻] |
-| `references/stage-3-dialogue-performance.md` | S4 |
-| `references/externalization-lexicon.md` | S4–S6 任何时候出现情绪词 |
-| `references/stage-4-directing-storyboard.md` | S5 |
-| `references/camera-vocabulary.md` | S5 / S6 写镜头语 |
-| `references/stage-5-prompt-compiler.md` | S6 |
-| `references/stage-6-qa-continuity.md` | S7 |
+| `references/stage-1-intake.md` | S1 / S2：登记、任务树（R2V 核心）、项目目录 |
+| `references/concept-generation.md` | S3a 概念模式契约 + 五步协议（含 D0/D1/D2 检索） |
+| `references/stage-3a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
+| `references/stage-3b-story.md` | S3b 故事开发：主传统 / 世界观 / 人物六格 / 情绪温度表 / 场景清单 |
+| `references/stage-3c-script.md` | S3c 剧本落地：四问 / 节拍表 / 剧本页 / 台词五关与副词规则 / 语域 |
+| `references/screenwriting-traditions.md` | 好莱坞 · 欧洲 · 韩国 × 六维度；按格式选主传统；24 条可迁移规则 |
+| `references/stage-4-performance.md` | S4 表演外化与台词的模型执行约束 |
+| `references/stage-5-directing-storyboard.md` | S5 导演与分镜 |
+| `references/stage-5b-reference-assets.md` | S5b 参考资产清单与图像简报（图 + 文核心） |
+| `references/stage-6-prompt-compiler.md` | S6 |
+| `references/stage-7-qa-continuity.md` | S7 |
 | `references/source-analysis.md` | 审计 / 更新来源时 |
 | `templates/*.md` | 各阶段产物骨架 |
 | `scripts/validate_prompt.py` | S6 之后必跑 |
@@ -56,7 +51,7 @@ python3 ~/.claude/skills/film-seedance-director/scripts/validate_prompt.py <prom
 ## 项目目录约定
 
 ```
-<project>/00_brief.md · 01_bible/ · 02_script/ · 03_shots/ · 04_prompts/ · 05_qa/
+<workspace>/<ip-slug>/ip.md · assets/ · <story-slug>/{00_brief, 01_concept, 02_story, 03_script/, 04_shots/, 05_assets/, 06_prompts/, 07_qa/}
 ```
 
 ## 事实来源

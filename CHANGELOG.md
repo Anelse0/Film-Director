@@ -2,6 +2,23 @@
 
 格式遵循 Keep a Changelog；版本号遵循语义化版本。
 
+## [2.0.0] - 2026-09-04
+
+架构改造。用户指出的三个结构问题：概念选定后直接掉进生产（缺故事与剧本层）；生产默认文生视频而实际核心是图 + 文；目录按阶段平铺而非按 IP / 故事。
+
+### Added
+- **创作层三层**：S3a 概念 → S3b 故事开发（`stage-3b-story.md`：主传统、世界观三条硬规则与一个大谎、人物六格、情绪温度表、场景清单、多集钩子表）→ S3c 剧本落地（`stage-3c-script.md`：四问、节拍表、剧本页格式、台词五关、副词规则与替换表、张力六源、五种语域、声音表核对）。各停一次；单 clip 指示时合并。
+- `references/screenwriting-traditions.md`：好莱坞 / 欧洲 / 韩国 × 结构、情绪、人物、台词、节奏、世界观；按格式与情绪核心选主传统；24 条可迁移规则；误用信号。调研来源：Snyder、McKee、Truby、Sorkin、Script Magazine（wrylies）、Dardenne、Haneke、起承转结、韩剧 16 集结构与 한/정、Bong Joon-ho 类型混合、短剧三点论。
+- **S5b 参考资产准备**（`stage-5b-reference-assets.md`）：从分镜推资产清单、每张图的模型无关图像简报、一致性标记、上传顺序编号、缺资产降级路径。
+- 模板：`story.md`、`script-scene.md`（替代 scene-card）、`reference-asset-brief.md`、`ip.md`（替代 project-bible）。
+- 运行模式新增"单 clip"。
+
+### Changed
+- 项目目录改为 `<ip-slug>/ip.md + assets/ + <story-slug>/{00_brief,01_concept,02_story,03_script,04_shots,05_assets,06_prompts,07_qa}`；概念选定前不创建任何目录。
+- 生产路径：R2V 主体 + 场景参考为核心，T2V 降为兜底并需用户明确接受风险；任务树、编译表、Prompt 骨架顺序同步。
+- 文件重命名对齐阶段号：stage-2a→3a、stage-3→4、stage-4→5、stage-5→6、stage-6→7；`stage-2-story-scene.md` 并入 3b/3c。
+- SKILL.md 重写：流水线、停靠点、目录、硬规则 2 / 7 / 13。
+
 ## [1.11.0] - 2026-09-04
 
 ### Added
