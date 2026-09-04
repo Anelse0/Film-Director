@@ -17,6 +17,10 @@ check "lens-B exits 0" $rc "$out"
 echo "$out" | grep -q "0 error(s), 1 warning(s)"; check "lens-B exactly W11" $? "$(echo "$out" | grep -E 'WARN|==')"
 echo "$out" | grep -q "W11"; check "lens-B W11 present" $? ""
 
+out=$($V examples/example-03-yogurt-comedy.prompt.md); rc=$?
+check "example-03 exits 0" $rc "$out"
+echo "$out" | grep -q "0 error(s), 0 warning(s)"; check "example-03 clean" $? "$(echo "$out" | tail -1)"
+
 out=$($V examples/bad-example.prompt.md); rc=$?
 [ $rc -eq 1 ]; check "bad-1 exits 1" $? "rc=$rc"
 for code in E01 E12 E05 E02 E03 E04 W06 W09 W10 W02; do
@@ -24,7 +28,7 @@ for code in E01 E12 E05 E02 E03 E04 W06 W09 W10 W02; do
 done
 
 out=$($V examples/bad-example-2.prompt.md)
-for code in W13 W14 W15 W17; do
+for code in W13 W14 W15 W17 W18; do
   echo "$out" | grep -q "$code"; check "bad-2 has $code" $? ""
 done
 

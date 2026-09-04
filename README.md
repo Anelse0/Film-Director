@@ -23,7 +23,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `references/stage-1-intake.md` | S1 / S2 |
 | `references/stage-2a-concept.md` | S3a 概念：前提 / 主控句 / 三问 / 反套路 |
 | `references/stage-2-story-scene.md` | S3b |
-| `references/director-lenses.md` | S3b / S5：14 个导演透镜（问题 → 可观察量 → 误用信号） |
+| `references/director-lenses.md` | S3b / S5：18 个导演透镜（问题 → 可观察量 → 误用信号），克制 / 外放两侧均衡 |
 | `references/anti-mechanical.md` | 全程：防机械套用规则与品味门 |
 | `references/genre-packs.md` | 动作 / 悬疑恐怖 / UGC 广告 / 蒙太奇 四个类型包 |
 | `references/validation-log.md` | 成片验证账本：把 [推论] 变成 [已验证] 或 [已推翻] |
@@ -38,6 +38,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事与场景 → S
 | `scripts/validate_prompt.py` | S6 之后必跑 |
 | `examples/example-01-kitchen-keys*.md` | 完整走查 + 通过校验的 Prompt |
 | `examples/example-02-one-scene-three-lenses.md` | 同一场戏三个透镜的对照，含一版通过校验的 Prompt |
+| `examples/example-03-yogurt-comedy*.md` | 喜剧语域走查（三拍 + 反讽落差），通过校验 |
 
 ## 校验脚本
 
@@ -80,4 +81,4 @@ git clone https://github.com/Anelse0/Film-Director.git ~/.claude/skills/film-see
 
 - 模型能力更新 → 只改 `references/seedance-2.5-capabilities.md`，并保留事实标签。
 - 新任务类型 → 在 `templates/prompt-templates.md` 加骨架，在 `stage-1-intake.md` 判定树加分支，在校验脚本加触发词。
-- 校验脚本回归：`examples/bad-example.prompt.md` 应报 ≥ 6 个 ERROR；`example-01-kitchen-keys.prompt.md` 应 0 ERROR。
+- 校验脚本回归：`bash tests/run_tests.sh`。
