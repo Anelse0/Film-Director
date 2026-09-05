@@ -48,11 +48,18 @@ rm -rf "$tmp"
 C="python3 scripts/validate_concept.py"
 out=$($C examples/good-concept.md); rc=$?
 check "good-concept exits 0" $rc "$out"
+echo "$out" | grep -q "0 error(s), 0 warning(s)"; check "good-concept clean (single candidate, research rows with 可信范围)" $? "$(echo "$out" | tail -1)"
 out=$($C examples/bad-concept.md); rc=$?
 [ $rc -eq 1 ]; check "bad-concept exits 1" $? "rc=$rc"
-for code in C03 C04 C05 C07; do
+for code in C02 C03 C04 C06 C07 C09 C10 C11; do
   echo "$out" | grep -q "$code"; check "bad-concept has $code" $? ""
 done
+# 2.4.0: 候选数量不固定；集中研究一个题材不是错误；旧格式概念卡只告警不报错
+out=$($C tests/fixtures/concept-legacy-2.3.md); rc=$?
+check "legacy 2.3 concept card exits 0" $rc "$out"
+echo "$out" | grep -q "C07"; check "legacy card now warns about research record columns" $? "$out"
+echo "$out" | grep -q "候选只有\|需要 3"; rc=$?
+[ "$rc" -ne 0 ]; check "no fixed candidate count" $? "$out"
 grep -q "^## 工作示例\|^## 附：骰子" references/concept-generation.md && { echo "FAIL concept-generation.md 仍含工作示例正文"; fail=1; } || echo "PASS concept-generation.md has no worked examples"
 
 # 结构：保留已安装的调用名称（目录大小写可以不同）
