@@ -1,6 +1,6 @@
 # film-seedance-director
 
-版本 **2.3.1**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含可直接使用的情绪表演库与强度/克制调节。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
+版本 **2.4.0**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含可直接使用的情绪表演库与强度/克制调节。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
 
 ## 一句话
 
@@ -45,6 +45,9 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本
 | `references/source-analysis.md` | 审计 / 更新来源时 |
 | `templates/*.md` | 各阶段产物骨架 |
 | `scripts/validate_prompt.py` | S6 之后必跑 |
+| `scripts/validate_concept.py` | 概念选定落盘后跑；只查格式与完整性，不判断创意 |
+| `scripts/blind_eval.py` + `tests/creative-eval.md` | 旧版 / 新版盲选评测：打包、记录判定、揭晓 |
+| `examples/concept-worked-examples.md` | 概念协议跑出来长什么样（概念模式默认不读，禁止复用候选） |
 | `examples/example-01-kitchen-keys*.md` | 完整走查 + 通过校验的 Prompt |
 | `examples/example-02-one-scene-three-lenses.md` | 同一场戏三个透镜的对照，含一版通过校验的 Prompt |
 | `examples/example-03-yogurt-comedy*.md` | 喜剧走查（三拍 + 反讽落差），通过校验 |
@@ -68,7 +71,17 @@ python3 scripts/validate_prompt.py <original.txt> --artifact raw --entry-id 6
 python3 scripts/validate_prompt.py <prompt.md> --production-record <production.json> --require-ready --json
 ```
 
-接口与参数适配见 `references/production-workflow.md`。新版验收和30秒对照见 `examples/production/acceptance-2.3.1.md`；可直接测试 `examples/production/30s-fight-t2v.prompt.md`。原R2V案例需补真实素材；不会把虚构图号当就绪。
+接口与参数适配见 `references/production-workflow.md`。生产侧验收和30秒对照见 `examples/production/acceptance-2.3.1.md`；可直接测试 `examples/production/30s-fight-t2v.prompt.md`。原R2V案例需补真实素材；不会把虚构图号当就绪。
+
+创意评测（2.4.0 起）：
+
+```bash
+python3 scripts/blind_eval.py pack <evaldir> --pair 01 --topic "<需求>" --a <旧版输出.md> --b <新版输出.md> --a-label 2.3.1 --b-label 2.4.0
+python3 scripts/blind_eval.py record <evaldir> --pair 01 --verdict X --evidence "<具体文本证据>"
+python3 scripts/blind_eval.py reveal <evaldir>
+```
+
+协议、覆盖矩阵与验收标准见 `tests/creative-eval.md`；2.4.0 的开发与验收情况见 `tests/acceptance-2.4.0.md`。自动检查负责约束与交付完整性；创意与编剧质量由用户盲选、具体文本证据和 `references/preference-ledger.md` 判断。
 
 ## 项目目录约定
 
