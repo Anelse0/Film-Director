@@ -49,6 +49,19 @@ S3b/S3c 的创作工具。好莱坞、欧洲、韩国都包含不同作者和类
 
 ## 五、核实依据（2026-09-05）
 
+### 方法资源（2.4.0 起按"解决的问题 → 作用机制 → 适用边界 → 原始依据"记录）
+
+| 解决的问题 | 作用机制 | 适用边界 | 原始依据 |
+|---|---|---|---|
+| 概念阶段就被迫写出主题金句，写死了探索 | 从"不知道"开始，带着兴趣探索，允许作品在写的过程中发现自己关心什么 | 保留发现空间不等于放弃结构与修订——那是本 Skill 的设计选择 `[推论]`；Kaufman 本人对三幕结构不感兴趣，不能把他引为"结构必要"的依据 | [Charlie Kaufman，BAFTA 编剧讲座 2011](https://www.bafta.org/stories/charlie-kaufman-screenwriters-lecture/)（原页需人工访问；要点经 MovieMaker、Go Into The Story 转载核对）`[第三方转述]` |
+| 人物只有身份标签，行为与语言不可信 | 研究同时进入语言（句法、方言）、工作动作与空间，并与写作、修订交替 | 采用"研究进入语言 / 动作 / 空间"的做法与交替节奏，不复制其研究规模；创作推演须与真实材料分开标注 | [Robert Eggers，BAFTA 编剧讲座 2019](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-series-2019-robert-eggers/)（原页需人工访问）；方言研究细节经 [BFI](https://www.bfi.org.uk/interviews/robert-eggers-lighthouse-influences)、IndieWire、No Film School 访谈核对 `[第三方转述]` |
+| 每场戏都被写成对抗 | 以欲望与关系驱动场景：张力来自距离、允许与代价，而非冲突 | 是可选方法，不是"必须无冲突"的新规则；需要观众看见"允许"的证据 | [Céline Sciamma，BAFTA 编剧讲座 2019](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-series-2019-celine-sciamma/)（原页需人工访问）；"没有冲突不等于没有张力"经 [Sight & Sound](https://www.bfi.org.uk/sight-and-sound/interviews/no-mans-land-celine-sciamma-portrait-lady-fire)、[RogerEbert.com](https://www.rogerebert.com/interviews/love-dialogue-celine-sciamma-on-portrait-of-a-lady-on-fire) 访谈核对 `[第三方转述]` |
+| 台词是交错独白，人物没听见对方 | 对白像魔术贴，两片为彼此设计；坏写法是人物只想自己的下一句；情绪时刻应更不连贯、更情绪清楚；四问检验声音（别人能说吗 / 作者在借口说话吗 / 真感受还是情节需要 / 能想象具体的人说吗） | 采用为审阅问题，不做句长、标点或及物动词配额 | [John August / Craig Mazin，Scriptnotes 609](https://johnaugust.com/2023/scriptnotes-episode-609-dialogue-and-character-voice-transcript) `[第三方]` |
+| 场景从第一个想到的写法直接落笔 | 十一步：必须发生什么 / 删掉会怎样 / 谁在场 / 地点还能是哪 / 意外的可能 / 值得多长 / 三种进入方式 / 脑内排演 / 潦草版 / 正稿 / 反复 | 作为创作回路里的可选工具，不要求每场走完全部步骤 | [John August，How to Write a Scene（2007）](https://johnaugust.com/2007/write-scene) `[第三方]` |
+| 多写几个候选是否自动带来多样性 | 实验发现 AI 提供点子后个体作品评价改善（尤其低基线作者），但作品之间更相似 | 说明多样性需要单独检查；不能直接证明本 Skill 某项改法有效，仍须对照盲测 | [Doshi & Hauser 2024，arXiv:2312.00506](https://arxiv.org/abs/2312.00506) `[第三方]` |
+
+### 其他依据
+
 - [John August / Craig Mazin，Scriptnotes 609](https://johnaugust.com/2023/scriptnotes-episode-609-dialogue-and-character-voice-transcript)：人物声音、听与回应、情绪如何影响语言组织。采用为审阅问题，不变成句长配额。
 - [Brian Helgeland，BAFTA 讲座](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-brian-helgeland/)：电影对白是创作后的语言，不等于日常录音；这不为无动机的漂亮话开脱。
 - [Sidney Lumet，DGA 访谈](https://www.dga.org/craft/dgaq/issues/0305-may-2003/under-the-influence-sidney-lumet)：排练涵盖走位与道具，视觉与表演随作品意图发展。转为跨部门检查，不复刻个人拍摄配额。

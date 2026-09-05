@@ -26,8 +26,11 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本
 | `references/concept-generation.md` | S3a 概念模式契约：创作判断 / 默认地图 / 入口 / 研究服务缺口 / 候选发展 / 试写 |
 | `references/research-to-craft.md` | S3a–S4：研究材料如何进入创作（缺口 → 发现 / 可信范围 / 影响的决定） |
 | `references/stage-3a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
-| `references/stage-3b-story.md` | S3b 故事开发：主传统 / 世界观 / 人物六格 / 情绪温度表 / 场景清单 |
-| `references/stage-3c-script.md` | S3c 剧本落地：四问 / 节拍表 / 剧本页 / 台词通用关与副词规则 |
+| `references/stage-3b-story.md` | S3b 故事开发：方法与叙事方式 / 世界观 / 人物（怎样过一天 + 六格 + 声音四问）/ 情绪温度表 / 场景清单（含人物侧 / 观众侧） |
+| `references/stage-3c-script.md` | S3c 剧本落地：两侧问题 / 节拍表 / 先散文再链再台词 / 台词通用关 / 对白审阅 / 重写 |
+| `references/character-scene-development.md` | S3b–S4 共用：人物侧 / 观众侧问题、五种叙事方式、人物可信、人物声音四问、对白审阅 |
+| `references/creative-loop.md` | S3a–S5 共用：允许的回流、收到批评后先诊断层级、重写纪律、场景写作可选步骤 |
+| `references/preference-ledger.md` | 用户确认过的偏好：喜欢哪种效果 / 在哪类作品适用 / 反例；重写前先查 |
 | `references/scene-parameters.md` | 场景参数卡：六参数 → 台词 / 表演 / 分镜 / 结构 / 模型执行的规则取值；预设只是参数组合 |
 | `references/screenwriting-traditions.md` | 基于第一手编剧/导演资料，按场景问题选方法，不按地区或配额套写 |
 | `references/emotion-performance.md` | 原文/微调/重组，强度与克制独立，高光时间编排及保真 |
