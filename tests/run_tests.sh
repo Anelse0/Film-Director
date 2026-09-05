@@ -32,9 +32,13 @@ for code in E01 E12 E05 E02 E03 E04 W06 W09 W10 W02; do
 done
 
 out=$($V examples/bad-example-2.prompt.md)
-for code in W13 W14 W15 W17 W18; do
+for code in W13 W15 W17; do
   echo "$out" | grep -q "$code"; check "bad-2 has $code" $? ""
 done
+
+# 2.3: these are varying states and reusable body cues, not prohibited copying.
+echo "$out" | grep -q 'W14\|W18'; rc=$?
+[ "$rc" -ne 0 ]; check "body-part reuse no longer emits W14/W18" $? "$out"
 
 tmp=$(mktemp -d); cp examples/example-02-lens-B-haneke.prompt.md "$tmp/clip02.prompt.md"
 out=$($V examples/example-02-lens-B-haneke.prompt.md "$tmp/clip02.prompt.md")
@@ -51,8 +55,8 @@ for code in C03 C04 C05 C07; do
 done
 grep -q "^## 工作示例\|^## 附：骰子" references/concept-generation.md && { echo "FAIL concept-generation.md 仍含工作示例正文"; fail=1; } || echo "PASS concept-generation.md has no worked examples"
 
-# 结构：SKILL.md frontmatter 与目录名一致
-grep -q "^name: film-seedance-director" SKILL.md; check "SKILL.md name matches dir" $? ""
+# 结构：保留已安装的调用名称（目录大小写可以不同）
+grep -q "^name: film-seedance-director" SKILL.md; check "SKILL.md invocation name preserved" $? ""
 # 所有 SKILL.md 引用的 references/templates 文件存在
 missing=""
 for f in $(grep -oE '`(references|templates|scripts|examples)/[^`]+`' SKILL.md | tr -d '`' | sort -u); do
@@ -60,4 +64,6 @@ for f in $(grep -oE '`(references|templates|scripts|examples)/[^`]+`' SKILL.md |
 done
 [ -z "$missing" ]; check "SKILL.md links resolve" $? "$missing"
 
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
+check "performance regression suite" $? ""
 exit $fail

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "mode": "adapt",
+  "duration": null,
+  "beats": [
+    {
+      "id": "b1",
+      "actor": "角色标识",
+      "start": 0,
+      "end": null,
+      "text": "填入已确认的完整表演正文",
+      "entry_ids": [],
+      "keep": [{"text": "填入已确认的完整表演正文", "reason": "替换为本次识别性细节及理由"}],
+      "changes": ["替换为本次有意调整；不要复制示例条目编号"]
+    }
+  ]
+}

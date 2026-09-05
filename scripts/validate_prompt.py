@@ -1,71 +1,28 @@
 #!/usr/bin/env python3
-"""Seedance 2.5 Prompt 静态校验器（film-seedance-director S7）。
-
-用法:
-    python3 validate_prompt.py <prompt.md> [--duration N] [--json]
-
-只依赖标准库。读取编译后的 Prompt 文件（中文或英文骨架），做确定性检查：
-  ERROR  违反官方规则或结构缺失，必须修
-  WARN   风险项，需逐条说明保留理由
-  INFO   统计信息
-
-检查项（编号对应 SKILL.md 硬规则 / 各 reference）:
-  E01 缺少【素材绑定】/REFERENCES 段
-  E02 时间戳非整数秒
-  E03 时间戳不连续 / 首镜不从 0 开始
-  E04 末镜结束秒 != 声明时长（--duration 或【总述】中的"N秒"）
-  E05 引用了未在【素材绑定】声明的素材编号
-  E06 clip 总时长 > 30s
-  E07 编辑任务缺少触发关键词 / 延长任务缺少触发关键词
-  E08 关键帧任务首句不是"以图片x至图片y的顺序作为关键帧"
-  W01 画面级负向描述（只允许字幕/音频负向）
-  W02 空泛风格词
-  W03 情绪抽象词未见外化（同一镜头段落内无动作/部位/视线词）
-  W04 单镜 < 1.5s 或 30s 内镜头数 > 8
-  W05 台词密度：某镜台词字数 / 镜头秒数 过高，或总台词估时 > 2/3
-  W06 台词出现在引号外（"说了一句…"）
-  W07 缺少"不要字幕"或声音策略
-  W08 缺少镜头段落的景别标注【…】/[...]
-  W09 时间戳控频（"N秒内…N次"）
-  W10 镜头段落含 2 个以上运镜词
-  W11 多说话人同一镜头（可能同框同时说话）
-  W12 缺少起始状态段
-  W13 Prompt 正文出现导演/影片/摄影师名字（名字不是可观察量）
-  W14 同一外化短语在一个 clip 内出现 ≥ 3 次
-  W15 反套路组合（缓慢推近+泪/悲伤；黄金时刻；雨夜霓虹；背影望远）——需要理由
-  W16 多文件模式：相邻 clip 同一主透镜 / 某透镜占比 > 1/3
-  W17 同一运镜连续 ≥ 3 镜
-  W18 外化词典示例短语被逐字照抄（未改成角色专属版本）
-  W19 一句台词做多件事（引号内 ≥ 3 个句号 / 叹号 / 问号）—— 因果链"一件事测试"的粗略代理
-
-多文件用法:
-    python3 validate_prompt.py clip01.prompt.md clip02.prompt.md ...
-    按传入顺序视为相邻 clip；每个文件末尾 E 层表的「透镜」行用于 W16。
+"""Prompt format/fidelity checks for film-seedance-director.
+Usage: validate_prompt.py FILE... [--duration N] [--json]
+       [--artifact production|performance|raw] [--record RECORD.json]
+       [--entry-id N] [--batch sequence|independent]
+Default production CLI remains compatible. ERROR is a format/contract issue,
+not necessarily an official model limitation. WARN requires review.
+F01-F06 concern record/schema/text fidelity; E20 concerns performance timing.
+W14 reviews identical adjacent complete blocks; W18 is retired.
+Semantic acting quality is always needs_review; render is always not_tested.
+Exit 0 means no deterministic errors, 1 check failure, 2 invalid invocation/input.
 """
+import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
+
+from performance_checks import split_beats, timing_errors, check_record, check_raw, repeated_blocks
 
 # ---------- 词表 ----------
 VAGUE_WORDS = [
     "电影感", "唯美", "震撼", "史诗感", "高级感", "氛围感", "大片感", "大片",
     "cinematic", "stunning", "epic", "beautiful", "premium", "breathtaking",
-]
-EMOTION_WORDS = [
-    "悲伤", "难过", "伤心", "愤怒", "生气", "紧张", "恐惧", "害怕", "释然", "犹豫",
-    "羞耻", "轻蔑", "惊讶", "疲惫", "尴尬", "深情", "冷漠", "温柔", "痛苦", "绝望",
-    "喜悦", "开心", "幸福", "焦虑", "不舍", "感伤", "怅然",
-    "sad", "angry", "nervous", "afraid", "anxious", "relieved", "hesitant",
-    "ashamed", "surprised", "exhausted", "awkward", "tender", "cold", "desperate",
-]
-OBSERVABLE_HINTS = [
-    "手", "指", "眉", "眼", "嘴", "唇", "下颌", "下巴", "肩", "吞咽", "眨", "视线", "看向", "看着",
-    "盯", "转身", "后退", "靠近", "低头", "抬头", "停", "秒", "呼吸", "泪", "拳", "握", "放下",
-    "递", "接", "站", "坐", "走", "跑", "焦点", "推近", "后拉",
-    "hand", "finger", "brow", "eye", "mouth", "lip", "jaw", "shoulder", "swallow", "blink",
-    "look", "gaze", "stare", "turn", "step", "lean", "sit", "stand", "walk", "hold", "drop",
-    "second", "breath", "tear", "fist", "focus",
 ]
 CAMERA_MOVES = [
     "推", "拉", "摇", "横移", "跟拍", "跟随", "环绕", "升", "降", "俯冲", "后拉", "手持",
@@ -74,9 +31,11 @@ CAMERA_MOVES = [
 SHOT_SIZE_WORDS = ["远景", "全景", "中景", "近景", "特写", "wide", "medium", "close-up", "close up", "extreme"]
 NEG_ALLOWED = ["字幕", "bgm", "背景音乐", "对白", "人声", "音效", "声音", "音乐", "旁白", "配乐",
                "subtitle", "caption", "music", "dialogue", "narration", "voice", "sound", "score", "bgm"]
-NEG_PATTERNS = [r"不要[^，。；\n]{0,12}", r"不(?:能|准|得)?出现[^，。；\n]{0,12}", r"没有出现[^，。；\n]{0,12}",
-                r"画面[里中内]没有[^，。；\n]{0,12}", r"不(?:能|准|得)有[^，。；\n]{0,12}", r"(?:^|[，。；\s])无(?!缝|论|法|参考)[^，。；\n|]{1,6}",
-                r"\bno\s+[a-z\- ]{1,20}", r"\bwithout\s+[a-z\- ]{1,20}"]
+# Only explicit object-exclusion syntax; no blanket "no/without/无" scanning.
+# Behavioral negation and ambiguous English phrases require semantic review.
+NEG_PATTERNS = [r"不要出现[^，。；\n]{1,20}", r"不(?:能|准|得)?出现[^，。；\n]{1,20}",
+                r"画面[里中内]没有[^，。；\n]{1,20}",
+                r"\b(?:do not include|must not show|exclude)\s+[^.\n]{1,30}"]
 DIRECTOR_NAMES = [
     "希区柯克", "斯皮尔伯格", "芬奇", "哈内克", "卡隆", "维伦纽瓦", "兰斯莫斯", "科恩", "埃德加", "吕美特",
     "马梅", "库布里克", "诺兰", "斯科塞斯", "伯格曼", "韦斯·安德森", "塔可夫斯基", "王家卫", "是枝裕和",
@@ -90,20 +49,6 @@ CLICHE_PATTERNS = [
     (r"(雨夜|rain)[^。\n]{0,30}(霓虹|neon)", "雨夜霓虹"),
     (r"(背影|背对镜头|from behind)[^。\n]{0,20}(望向远方|看向远处|远方|地平线|horizon|distance)", "背影望远"),
     (r"(慢动作|slow motion|slow-mo)[^。\n]{0,30}(泪|哭|拥抱|回头|tear|hug)", "慢动作情绪"),
-]
-EXTERNALIZATION_PHRASES = [
-    "抿嘴", "抿着嘴", "吞咽", "手指停住", "手停住", "停住", "眼眶泛红", "泪滑落", "深吸一口气", "长出一口气",
-    "低头", "抬头", "眨眼", "握拳", "摩挲", "肩膀下沉", "肩膀往下沉", "嘴角", "眉头",
-    "swallow", "blink", "fist", "shoulders drop", "jaw", "lips pressed",
-]
-LEXICON_VERBATIM = [
-    "手指反复摩挲物件边缘", "肩膀下沉", "下唇内收，眼睑半垂，吞咽一次", "看物件不看人", "说话前延迟 1–2s",
-    "手撑桌沿", "嘴角向下拉，眼眶泛红，泪滑落一侧", "手握拳后松开", "下颌收紧，鼻翼扩张，眉头压低",
-    "摆弄衣领", "手指敲桌", "频繁眨眼，抿嘴", "瞟门口或窗外", "后退半步；手护住身前物件", "肩膀放下；长出一口气",
-    "帮对方整理衣角", "递东西时手停留 1s", "放下物件后不再碰", "手伸出又收回", "脚步迈出半步停住",
-    "手遮住脸一侧", "靠回椅背；双臂交叉", "单侧嘴角上提，眼睛半眯", "手中动作停住；身体后仰", "揉眼；靠墙",
-    "肩膀相碰", "递东西不松手", "手指抓紧衣角", "挺胸；把成果推向对方", "摸后颈", "身体前倾；手停在物件上",
-    "手停在门把上三秒没有拧",
 ]
 EDIT_TRIGGERS = ["编辑视频", "增加", "加上", "删除", "去掉", "修改", "替换", "改成"]
 EXTEND_TRIGGERS = ["向前延长", "向后延长", "延续", "续写", "延长"]
@@ -152,37 +97,78 @@ def split_shots(text):
 
 def declared_duration(text, override):
     if override is not None:
-        return float(override)
-    m = re.search(r"(\d+)\s*(?:秒|s\b|-second|second)", text)
-    return float(m.group(1)) if m else None
+        value = float(override)
+        if not math.isfinite(value):
+            raise ValueError("duration must be finite")
+        return value
+    m = re.search(r"\|\s*duration\s*\|\s*(-?\d+(?:\.\d+)?)\s*\|", text, re.I)
+    if m:
+        return float(m.group(1))
+    # Never take the first incidental reference-video/beat duration.
+    m = re.search(r"(?:【总述】|【表演条件】|OVERVIEW[:：]?)\s*([^\n]+)", text, re.I)
+    if m:
+        number = re.search(r"(\d+(?:\.\d+)?)\s*(?:秒|s\b|-second|second)", m.group(1), re.I)
+        if number:
+            return float(number.group(1))
+    return None
+
+
+def speech_parameters(text):
+    def field(key):
+        match = re.search(r"\|\s*" + key + r"\s*\|\s*([^|\n]+)\|", text)
+        return match.group(1).strip() if match else None
+    density = field("台词密度")
+    legacy = field("参数") or ""
+    dense = density == "密" if density is not None else bool(
+        re.search(r"(?:^|[·/；;、\s])(?:密度\s*)?密(?:$|[·/；;、\s])", legacy))
+    defaults = (6.0, 3.5, 0.75) if dense else (4.0, 2.5, 2 / 3)
+    values = []
+    for key, default in zip(("语速字每秒", "语速词每秒", "台词占比上限"), defaults):
+        raw = field(key)
+        value = float(raw) if raw is not None else default
+        if not math.isfinite(value) or value <= 0 or (key == "台词占比上限" and value > 1):
+            raise ValueError(f"{key} invalid")
+        values.append(value)
+    return tuple(values)
 
 
 def cjk_len(s):
     return sum(1 for ch in s if "一" <= ch <= "鿿")
 
 
-def validate(path, duration_override=None):
+def validate(path, duration_override=None, artifact="production", record=None, entry_id=None):
     text = Path(path).read_text(encoding="utf-8")
+    metadata_text = text
+    if artifact not in {"production", "performance", "raw"}:
+        raise ValueError("invalid artifact")
     errors, warns, infos = [], [], []
 
     def err(code, msg): errors.append(f"{code} {msg}")
     def warn(code, msg): warns.append(f"{code} {msg}")
     def info(msg): infos.append(msg)
 
-    is_edit = bool(re.search(r"编辑视频|edit", text[:300], re.I)) or "duration=-1" in text or "duration: -1" in text
-    is_extend = bool(re.search(r"延长|extend", text[:200], re.I))
-    is_keyframe = bool(re.search(r"关键帧|keyframe", text, re.I))
+    if artifact == "raw":
+        raw_errors, fidelity = check_raw(text, entry_id)
+        return {"file": str(path), "errors": raw_errors, "warnings": [], "info": [],
+                "lens": None, "ext_phrases": {},
+                "checks": {"format": "not_applicable", "fidelity": fidelity,
+                           "performance": "needs_review", "render": "not_tested"}}
+    # Keep E-layer metadata out of observable prose and last shot/beat.
+    text = re.split(r"^\|\s*(?:项|参数项)\s*\|", text, maxsplit=1, flags=re.M)[0]
+    is_edit = artifact == "production" and bool(re.search(r"编辑视频|edit", text[:300], re.I)) or (artifact == "production" and ("duration=-1" in text or "duration: -1" in text))
+    is_extend = artifact == "production" and bool(re.search(r"延长|extend", text[:200], re.I))
+    is_keyframe = artifact == "production" and bool(re.search(r"关键帧|keyframe", text, re.I))
 
     # E01 / E12 / W07 structure
-    if not find_section(text, "refs"):
+    if artifact == "production" and not find_section(text, "refs"):
         err("E01", "缺少【素材绑定】/REFERENCES 段（无素材也要写「无参考素材」）")
-    if not is_edit and not find_section(text, "opening") and not is_extend:
+    if artifact == "production" and not is_edit and not find_section(text, "opening") and not is_extend:
         err("E12", "缺少【起始状态】/OPENING STATE 段")
-    if not is_edit and not find_section(text, "global"):
+    if artifact == "production" and not is_edit and not find_section(text, "global"):
         warn("W07", "缺少【贯穿要求】/GLOBAL RULES 段")
-    if not re.search(r"不要字幕|无字幕|不额外加入.{0,4}字幕|no subtitles|no captions", text, re.I):
+    if artifact == "production" and not re.search(r"不要字幕|无字幕|不额外加入.{0,4}字幕|no subtitles|no captions", text, re.I):
         warn("W07", "未声明字幕负向（建议加「不要字幕」）")
-    if not re.search(r"bgm|背景音乐|环境音|music|room tone|ambien", text, re.I):
+    if artifact == "production" and not re.search(r"bgm|背景音乐|环境音|music|room tone|ambien", text, re.I):
         warn("W07", "未声明声音策略（无 bgm / 只生成环境音 / bgm 描述）")
 
     # E07 triggers
@@ -213,7 +199,8 @@ def validate(path, duration_override=None):
     declared = set()
     for m in ASSET_DECL_RE.finditer(refs_block):
         a, b = int(m.group(1)), m.group(2)
-        kind = re.sub(r"\d+|@|\s", "", m.group(0)).lower()
+        first_ref = ASSET_REF_RE.match(m.group(0))
+        kind = re.sub(r"\d+|@|\s", "", first_ref.group(0)).lower()
         kind = {"图片": "img", "图": "img", "image": "img", "img": "img", "视频": "vid", "video": "vid",
                 "vid": "vid", "音频": "aud", "audio": "aud", "aud": "aud"}.get(kind, kind)
         if b:
@@ -234,13 +221,22 @@ def validate(path, duration_override=None):
                 "vid": "vid", "音频": "aud", "audio": "aud", "aud": "aud"}.get(kind, kind)
         used.add((kind, int(m.group(1))))
     missing = sorted(used - declared)
-    if missing and (declared or "无参考素材" not in refs_block):
+    if missing:
         err("E05", f"引用了未声明的素材：{', '.join(f'{k}{n}' for k, n in missing)}")
     info(f"素材声明 {len(declared)} 个，引用 {len(used)} 个")
 
     # timestamps
     shots = split_shots(text)
-    dur = declared_duration(text, duration_override)
+    dur = declared_duration(metadata_text, duration_override)
+    if dur is None and isinstance(record, dict) and type(record.get("duration")) in (int, float):
+        dur = float(record["duration"])
+    if dur is not None and (not math.isfinite(dur) or (not is_edit and (dur <= 0 or dur != int(dur)))):
+        err("E04", "总时长必须为正整数秒")
+    beats = split_beats(text)
+    if artifact == "performance" or beats or record is not None:
+        errors.extend(timing_errors(beats, dur, shots, complete=artifact == "performance" or not shots))
+    if artifact == "performance" and dur is not None and dur > 30:
+        err("E06", "clip 总时长 > 30s")
     if shots:
         for no, s, e, _ in shots:
             if s != int(s) or e != int(e):
@@ -264,40 +260,40 @@ def validate(path, duration_override=None):
             warn("W04", f"单镜 < 1.5s：镜头 {short}（2.5 抗拒快切 [第三方]）")
         if len(shots) > 8 and end <= 30:
             warn("W04", f"30s 内 {len(shots)} 镜 > 8（剧情类建议 ≤ 8 [推论]）")
-    elif not is_edit:
+    elif not is_edit and artifact == "production":
         warn("W08", "未识别到「镜头N（a-bs）」格式的分镜段落")
 
-    # 场景参数卡（E 层「参数」行）决定语速估算与台词占比上限 [推论]：密 / 外放 / 高 → 6 字/s、3.5 词/s、上限 3/4；否则 4 字/s、2.5 词/s、上限 2/3
-    pm = re.search(r"\|\s*参数\s*\|\s*([^|\n]+)\|", text)
-    dense = bool(pm and re.search(r"密|外放|高", pm.group(1)))
-    ZH_RATE, EN_RATE, SPEECH_CAP = (6.0, 3.5, 0.75) if dense else (4.0, 2.5, 2 / 3)
-    if pm:
-        info(f"参数卡：{pm.group(1).strip()}（语速估算 {ZH_RATE:g} 字/s）")
+    # Explicit dialogue settings only; emotional intensity is independent.
+    ZH_RATE, EN_RATE, SPEECH_CAP = speech_parameters(metadata_text)
+    info(f"台词估算 {ZH_RATE:g} 字/s，{EN_RATE:g} 词/s，占比 {SPEECH_CAP:g}（可覆盖的估时假设）")
 
-    # per-shot checks
-    total_speech_chars = 0
-    total_speech_words = 0
+    # Camera checks remain shot-level; dialogue below uses the smallest timed unit.
     for no, s, e, body in shots:
-        length = e - s
         head = body[:80]
         if not re.search(r"【[^】]{2,40}】|\[[^\]]{2,60}\]", head):
             warn("W08", f"镜头{no} 段首缺少【景别，角度，运镜】标注")
         elif not any(w in head for w in SHOT_SIZE_WORDS):
             warn("W08", f"镜头{no} 标注里没有景别词")
-        moves = [w for w in CAMERA_MOVES if w in body]
         # 去掉与"推门""拉开"等动作误报：只在标注括号内统计
         tag = re.search(r"【([^】]{2,60})】|\[([^\]]{2,80})\]", head)
         tag_txt = (tag.group(1) or tag.group(2)) if tag else ""
         tag_moves = [w for w in CAMERA_MOVES if w in tag_txt]
         if len(tag_moves) > 2:
             warn("W10", f"镜头{no} 标注含多个运镜词 {tag_moves}（每镜一个主要运镜）")
+    total_speech_chars = 0
+    total_speech_words = 0
+    # Nonacting shots can still contain voiceover. Never double-count nested beats.
+    speech_units = []
+    for shot in shots:
+        inner = split_beats(shot[3])
+        speech_units.extend(inner or [shot])
+    if not shots:
+        speech_units = beats
+    for no, s, e, body in speech_units:
+        length = e - s
         if re.search(r"\d+\s*秒?内.{0,10}\d+\s*次|\d+\s*times? (?:per|in) \d+", body):
             warn("W09", f"镜头{no} 用时间戳控制频次（官方不建议）")
-        # emotions
-        for w in EMOTION_WORDS:
-            if w in body and not any(h in body for h in OBSERVABLE_HINTS):
-                warn("W03", f"镜头{no} 出现情绪词「{w}」且段内无可观察量（动作/部位/视线/秒数）")
-                break
+        # Acting quality is a semantic review, never a body-part keyword pass.
         # dialogue
         quotes = QUOTE_RE.findall(body)
         speakers = set(m.group(1) or m.group(2) for m in SPEAKER_RE.finditer(body))
@@ -315,29 +311,15 @@ def validate(path, duration_override=None):
                 warn("W05", f"镜头{no} 有台词但未写非说话者嘴部状态")
         for q in quotes:
             if len(re.findall(r"[。！？!?]", q)) >= 3:
-                warn("W19", f"镜头{no} 台词「{q[:20]}…」一句做了多件事（≥ 3 个终止符）；拆开或删一件（causal-chain 一件事测试）")
+                warn("W19", f"镜头{no} 台词「{q[:20]}…」含多个终止标点；审阅是否挤入无关意图，不按标点自动拆句")
                 break
         for pat in SPEECH_LEAK:
             if re.search(pat, body):
                 warn("W06", f"镜头{no} 疑似引号外的台词描述（模型只念引号内文字）")
                 break
 
-    # W14 外化短语重复（整 clip 正文）
     prose_body = text
-    for alias in SECTION_ALIASES["global"]:
-        i = prose_body.find(alias)
-        if i > 0:
-            prose_body = prose_body[:i]
-    ext_counts = {}
-    for ph in EXTERNALIZATION_PHRASES:
-        c = len(re.findall(re.escape(ph), prose_body, re.I))
-        if c >= 3:
-            ext_counts[ph] = c
-    # 合并子串（"抿嘴" 与 "抿着嘴"）
-    for ph, c in sorted(ext_counts.items(), key=lambda kv: -len(kv[0])):
-        if any(ph != o and ph in o for o in ext_counts):
-            continue
-        warn("W14", f"外化短语「{ph}」出现 {c} 次（同一 clip ≤ 2；换通道或换成角色专属动作）")
+    warns.extend(repeated_blocks(beats or shots))
 
     # W17 同一运镜连续 ≥ 3 镜（只看段首标注）
     tag_moves_seq = []
@@ -352,14 +334,11 @@ def validate(path, duration_override=None):
         if tag_moves_seq[i] and tag_moves_seq[i] == tag_moves_seq[i - 1]:
             run += 1
             if run == 3 and tag_moves_seq[i] not in ("固定", "locked", "static"):
-                warn("W17", f"运镜「{tag_moves_seq[i]}」连续 {run} 镜（连续 ≤ 2；固定机位不计）")
+                warn("W17", f"运镜「{tag_moves_seq[i]}」连续 {run} 镜（审阅是否有意持续；固定机位不计）")
         else:
             run = 1
 
-    # W18 词典示例照抄
-    copied = [ph for ph in LEXICON_VERBATIM if ph in prose_body]
-    if copied:
-        warn("W18", f"外化写法与词典示例逐字相同 {copied}（改成这个角色、这个物件的版本，见 anti-mechanical §6）")
+    # W18 retired: reusable body actions are not prohibited quotations.
 
     # W13 导演名
     hits = [n for n in DIRECTOR_NAMES if re.search(re.escape(n), prose_body, re.I)]
@@ -371,8 +350,8 @@ def validate(path, duration_override=None):
         if re.search(pat, prose_body, re.I):
             warn("W15", f"反套路组合「{label}」（允许，但 QA 里要写一行指回主控句的理由）")
 
-    if shots:
-        end = shots[-1][2]
+    if speech_units:
+        end = dur if dur is not None and dur > 0 else speech_units[-1][2]
         est_total = total_speech_chars / ZH_RATE + total_speech_words / EN_RATE
         if est_total > end * SPEECH_CAP:
             warn("W05", f"总台词估时 {est_total:.1f}s > clip 的 {SPEECH_CAP:.2f}（{end * SPEECH_CAP:.1f}s）")
@@ -389,7 +368,7 @@ def validate(path, duration_override=None):
             if any(a in frag.lower() for a in NEG_ALLOWED):
                 continue
             seen.add(frag)
-            warn("W01", f"画面级负向描述「{frag}」（官方只支持字幕/音频负向，改为正向）")
+            warn("W01", f"画面级负向描述「{frag}」（对象排除建议改为正向；行为保持不在此类）")
 
     # W02 vague
     found = [w for w in VAGUE_WORDS if re.search(re.escape(w), text, re.I)]
@@ -397,44 +376,50 @@ def validate(path, duration_override=None):
         warn("W02", f"空泛风格词：{found}（改为可见量：媒介/光/色调/质地）")
 
     lens = None
-    m = re.search(r"\|\s*透镜\s*\|\s*([^|\n]+)\|", text)
+    m = re.search(r"\|\s*透镜\s*\|\s*([^|\n]+)\|", metadata_text)
     if m:
         lm = re.search(r"L\d+", m.group(1))
         lens = lm.group(0) if lm else m.group(1).strip()
+    fidelity = "not_checked"
+    if record is not None:
+        fidelity_errors, fidelity = check_record(record, beats, dur)
+        errors.extend(fidelity_errors)
     return {"file": str(path), "errors": errors, "warnings": warns, "info": infos, "lens": lens,
-            "ext_phrases": {ph: len(re.findall(re.escape(ph), prose_body, re.I)) for ph in EXTERNALIZATION_PHRASES}}
+            "ext_phrases": {},  # retained return key for 2.2 callers; no word-frequency judging
+            "checks": {"format": "failed" if any(e.startswith("E") for e in errors) else "passed",
+                       "fidelity": fidelity, "performance": "needs_review", "render": "not_tested"}}
 
 
 def main(argv):
-    if len(argv) < 2 or argv[1] in ("-h", "--help"):
-        print(__doc__)
-        return 2
-    dur = None
-    as_json = "--json" in argv
-    if "--duration" in argv:
-        dur = argv[argv.index("--duration") + 1]
-        argv = [a for a in argv if a not in ("--duration", dur)]
-    paths = [a for a in argv[1:] if not a.startswith("--")]
-    results = [validate(p, dur) for p in paths]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("paths", nargs="+")
+    parser.add_argument("--duration", type=float)
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--artifact", choices=("production", "performance", "raw"), default="production")
+    parser.add_argument("--record", type=Path)
+    parser.add_argument("--entry-id", type=int)
+    parser.add_argument("--batch", choices=("sequence", "independent"), default="sequence")
+    args = parser.parse_args(argv[1:])
+    if args.record and len(args.paths) != 1:
+        parser.error("--record applies to exactly one prompt")
+    if args.artifact == "raw" and (args.entry_id is None or args.record):
+        parser.error("raw requires --entry-id and does not take --record")
+    if args.entry_id is not None and args.artifact != "raw":
+        parser.error("--entry-id requires --artifact raw")
+    try:
+        record = json.loads(args.record.read_text(encoding="utf-8")) if args.record else None
+        if args.record and not isinstance(record, dict):
+            raise ValueError("record must be an object")
+        results = [validate(p, args.duration, args.artifact, record, args.entry_id) for p in args.paths]
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        parser.error(str(exc))
+    as_json = args.json
 
     cross = []
-    if len(results) > 1:
-        lenses = [r["lens"] for r in results]
+    if len(results) > 1 and args.batch == "sequence":
         for a, b in zip(results, results[1:]):
             if a["lens"] and a["lens"] == b["lens"]:
                 cross.append(f"W16 相邻 clip 同一主透镜 {a['lens']}：{Path(a['file']).name} → {Path(b['file']).name}")
-        known = [l for l in lenses if l]
-        for l in set(known):
-            if known.count(l) > max(1, len(results) / 3):
-                cross.append(f"W16 透镜 {l} 出现 {known.count(l)}/{len(results)}，超过 1/3")
-        agg = {}
-        for r in results:
-            for ph, c in r["ext_phrases"].items():
-                if c:
-                    agg[ph] = agg.get(ph, 0) + 1
-        for ph, n in agg.items():
-            if n >= 3 and n > len(results) * 0.6:
-                cross.append(f"W14 外化短语「{ph}」在 {n}/{len(results)} 个 clip 中出现（跨 clip 重复）")
 
     if as_json:
         print(json.dumps({"results": results, "cross": cross}, ensure_ascii=False, indent=2))
@@ -449,6 +434,7 @@ def main(argv):
                 print(f"INFO  {i}")
             if result["lens"]:
                 print(f"INFO  透镜 {result['lens']}")
+            print("CHECK " + json.dumps(result["checks"], ensure_ascii=False))
             print(f"== {len(result['errors'])} error(s), {len(result['warnings'])} warning(s)")
         if cross:
             print("== cross-clip")
