@@ -200,7 +200,7 @@ class PerformanceTests(unittest.TestCase):
 
     def test_high_suppressed_does_not_change_speech_estimate(self):
         self.assertEqual(speech_parameters("| 参数 | 强度高 · 内收 · 已知 · 对等 · 温 · 稀 |"), (4.0, 2.5, 2/3))
-        self.assertEqual(speech_parameters("| 参数 | 强度高 · 外放 · 已知 · 对等 · 灼 · 密 |"), (6.0, 3.5, .75))
+        self.assertEqual(speech_parameters("| 参数 | 强度高 · 外放 · 已知 · 对等 · 灼 · 密 |"), (4.0, 2.5, .75))
         self.assertEqual(speech_parameters("| 参数 | 高 · 密 |\n| 台词密度 | 无 |"), (4.0, 2.5, 2/3))
         self.assertEqual(speech_parameters("| 语速字每秒 | 3 |\n| 台词占比上限 | 0.5 |"), (3, 2.5, .5))
 

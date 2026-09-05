@@ -18,6 +18,8 @@ import sys
 from pathlib import Path
 
 from performance_checks import split_beats, timing_errors, check_record, check_raw, repeated_blocks
+from prompt_structure import Document, dialogue_checks
+from production_contract import metadata, task_type, parameters, roles_from_fields, check_parameters, TASKS
 
 # ---------- 词表 ----------
 VAGUE_WORDS = [
@@ -62,14 +64,9 @@ SECTION_ALIASES = {
     "global": ["【贯穿要求】", "GLOBAL RULES"],
 }
 
-SHOT_RE = re.compile(
-    r"^(?:镜头|Shot)\s*(\d+)\s*[（(]\s*(\d+(?:\.\d+)?)\s*(?:s|秒)?\s*[-–~]\s*(\d+(?:\.\d+)?)\s*(?:s|秒)?[^)）]*[)）]",
-    re.M,
-)
 ASSET_REF_RE = re.compile(r"(?:@?图片?|@?视频|@?音频|image|img|video|vid|audio|aud)\s*(\d+)", re.I)
-ASSET_DECL_RE = re.compile(r"(?:@?图片?|@?视频|@?音频|image|img|video|vid|audio|aud)\s*(\d+)(?:\s*[-–至到]\s*(?:图片?|image|img)?\s*(\d+))?", re.I)
+ASSET_DECL_RE = re.compile(r"(?:@?图片?|@?视频|@?音频|image|img|video|vid|audio|aud)\s*(\d+)(?:\s*[-–至到]\s*(?:图片?|image|img)?\s*(\d+))?(?=\s*(?:=|＝|:|：|为))", re.I)
 QUOTE_RE = re.compile(r"[“\"]([^”\"]{1,400})[”\"]")
-SPEAKER_RE = re.compile(r"(?:台词\s*[（(]([^)）]{1,20})[)）]|([^\s，。；:：]{1,12})\s*(?:说|says|说道)\s*[（(]?[^:：“\"。！？]{0,20}[:：]?\s*[“\"])")
 
 
 def find_section(text, key):
@@ -80,19 +77,7 @@ def find_section(text, key):
 
 
 def split_shots(text):
-    """返回 [(no, start, end, body)]"""
-    matches = list(SHOT_RE.finditer(text))
-    shots = []
-    for i, m in enumerate(matches):
-        body_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        body = text[m.end():body_end]
-        # 截断到贯穿要求前
-        for alias in SECTION_ALIASES["global"]:
-            idx = body.find(alias)
-            if idx >= 0:
-                body = body[:idx]
-        shots.append((int(m.group(1)), float(m.group(2)), float(m.group(3)), body))
-    return shots
+    return [(int(u.ident), u.start, u.end, u.body) for u in Document(text).shots]
 
 
 def declared_duration(text, override):
@@ -121,7 +106,9 @@ def speech_parameters(text):
     legacy = field("参数") or ""
     dense = density == "密" if density is not None else bool(
         re.search(r"(?:^|[·/；;、\s])(?:密度\s*)?密(?:$|[·/；;、\s])", legacy))
-    defaults = (6.0, 3.5, 0.75) if dense else (4.0, 2.5, 2 / 3)
+    # Density changes occupancy, not delivery speed. A dense scene can contain
+    # slow lines. Faster rates require an explicit production estimate.
+    defaults = (4.0, 2.5, 0.75 if dense else 2 / 3)
     values = []
     for key, default in zip(("语速字每秒", "语速词每秒", "台词占比上限"), defaults):
         raw = field(key)
@@ -130,10 +117,6 @@ def speech_parameters(text):
             raise ValueError(f"{key} invalid")
         values.append(value)
     return tuple(values)
-
-
-def cjk_len(s):
-    return sum(1 for ch in s if "一" <= ch <= "鿿")
 
 
 def validate(path, duration_override=None, artifact="production", record=None, entry_id=None):
@@ -155,14 +138,21 @@ def validate(path, duration_override=None, artifact="production", record=None, e
                            "performance": "needs_review", "render": "not_tested"}}
     # Keep E-layer metadata out of observable prose and last shot/beat.
     text = re.split(r"^\|\s*(?:项|参数项)\s*\|", text, maxsplit=1, flags=re.M)[0]
-    is_edit = artifact == "production" and bool(re.search(r"编辑视频|edit", text[:300], re.I)) or (artifact == "production" and ("duration=-1" in text or "duration: -1" in text))
-    is_extend = artifact == "production" and bool(re.search(r"延长|extend", text[:200], re.I))
-    is_keyframe = artifact == "production" and bool(re.search(r"关键帧|keyframe", text, re.I))
+    fields = metadata(metadata_text)
+    task = task_type(fields, text) if artifact == "production" else None
+    is_edit = task == "edit"
+    is_extend = task == "extend"
+    is_keyframe = task == "keyframe" or (task is None and bool(re.search(r"关键帧|keyframe", text, re.I)))
+    parameter_state = "not_applicable"
+    if artifact == "production":
+        pe, pw, parameter_state = check_parameters(task, parameters(fields), roles_from_fields(fields))
+        errors.extend(pe)
+        warns.extend(pw)
 
     # E01 / E12 / W07 structure
     if artifact == "production" and not find_section(text, "refs"):
         err("E01", "缺少【素材绑定】/REFERENCES 段（无素材也要写「无参考素材」）")
-    if artifact == "production" and not is_edit and not find_section(text, "opening") and not is_extend:
+    if artifact == "production" and task not in {"edit", "extend", "transition", "keyframe", "first_last", "motion"} and not is_keyframe and not find_section(text, "opening"):
         err("E12", "缺少【起始状态】/OPENING STATE 段")
     if artifact == "production" and not is_edit and not find_section(text, "global"):
         warn("W07", "缺少【贯穿要求】/GLOBAL RULES 段")
@@ -178,23 +168,24 @@ def validate(path, duration_override=None, artifact="production", record=None, e
         err("E07", "延长任务缺少触发关键词（向前/向后延长、延续、续写）")
 
     # E08 keyframe first sentence
-    if is_keyframe and "关键帧分镜" not in text[:200]:
+    if is_keyframe:
         first = text.strip().splitlines()[0] if text.strip() else ""
-        if not re.search(r"以图片?\s*\d+\s*[至到\-–]\s*图片?\s*\d+\s*的顺序作为关键帧", first):
-            err("E08", "关键帧任务首句必须是「以图片x至图片y的顺序作为关键帧」")
+        if not re.search(r"以图片?\s*\d+(?:(?:\s*[至到\-–、,，]\s*图片?\s*\d+)+)?\s*的顺序作为关键帧", first):
+            err("E08", "关键帧任务首句须明确图片编号与顺序（单图或有序多图）")
 
     # E05 asset refs
     refs_block = ""
     for alias in SECTION_ALIASES["refs"]:
         if alias in text:
             start = text.index(alias)
-            nxt = len(text)
-            for k in ("overview", "opening", "timeline"):
-                for a2 in SECTION_ALIASES[k]:
-                    i2 = text.find(a2, start + 1)
-                    if i2 > 0:
-                        nxt = min(nxt, i2)
-            refs_block = text[start:nxt]
+            lines = text[start:].splitlines(keepends=True)
+            kept = [lines[0]]
+            for line in lines[1:]:
+                if not line.strip() or ASSET_DECL_RE.match(line.lstrip()):
+                    kept.append(line)
+                else:
+                    break
+            refs_block = ''.join(kept)
             break
     declared = set()
     for m in ASSET_DECL_RE.finditer(refs_block):
@@ -208,12 +199,10 @@ def validate(path, duration_override=None, artifact="production", record=None, e
                 declared.add((kind, n))
         else:
             declared.add((kind, a))
-    # also keyframe first sentence range
-    m = re.search(r"以图片?\s*(\d+)\s*[至到\-–]\s*图片?\s*(\d+)\s*的顺序作为关键帧", text)
-    if m:
-        for n in range(int(m.group(1)), int(m.group(2)) + 1):
-            declared.add(("img", n))
-    body_after_refs = text.replace(refs_block, "")
+    # The keyframe sentence expresses order, not an upload declaration.
+    # Its references must still appear in REFERENCES like all other assets.
+    # Cross-references inside the binding section also need declarations.
+    body_after_refs = text
     used = set()
     for m in ASSET_REF_RE.finditer(body_after_refs):
         kind = re.sub(r"\d+|@|\s", "", m.group(0)).lower()
@@ -233,6 +222,16 @@ def validate(path, duration_override=None, artifact="production", record=None, e
     if dur is not None and (not math.isfinite(dur) or (not is_edit and (dur <= 0 or dur != int(dur)))):
         err("E04", "总时长必须为正整数秒")
     beats = split_beats(text)
+    document = Document(text)
+    errors.extend(document.ownership_errors())
+    # All declarations refer to the same generated timeline (editing is locked
+    # to the input instead). No precedence rule may silently hide a conflict.
+    if not is_edit:
+        overview_duration = declared_duration(text, None)
+        if overview_duration is not None and dur is not None and overview_duration != dur:
+            err("E04", "总述与参数/命令行声明的时长不一致")
+        if duration_override is not None and fields.get("duration") is not None and float(fields["duration"]) != dur:
+            err("E04", "参数表与命令行声明的时长不一致")
     if artifact == "performance" or beats or record is not None:
         errors.extend(timing_errors(beats, dur, shots, complete=artifact == "performance" or not shots))
     if artifact == "performance" and dur is not None and dur > 30:
@@ -260,7 +259,7 @@ def validate(path, duration_override=None, artifact="production", record=None, e
             warn("W04", f"单镜 < 1.5s：镜头 {short}（2.5 抗拒快切 [第三方]）")
         if len(shots) > 8 and end <= 30:
             warn("W04", f"30s 内 {len(shots)} 镜 > 8（剧情类建议 ≤ 8 [推论]）")
-    elif not is_edit and artifact == "production":
+    elif task not in {"edit", "motion", "transition"} and artifact == "production":
         warn("W08", "未识别到「镜头N（a-bs）」格式的分镜段落")
 
     # Explicit dialogue settings only; emotional intensity is independent.
@@ -279,33 +278,21 @@ def validate(path, duration_override=None, artifact="production", record=None, e
         tag_txt = (tag.group(1) or tag.group(2)) if tag else ""
         tag_moves = [w for w in CAMERA_MOVES if w in tag_txt]
         if len(tag_moves) > 2:
-            warn("W10", f"镜头{no} 标注含多个运镜词 {tag_moves}（每镜一个主要运镜）")
-    total_speech_chars = 0
-    total_speech_words = 0
-    # Nonacting shots can still contain voiceover. Never double-count nested beats.
-    speech_units = []
-    for shot in shots:
-        inner = split_beats(shot[3])
-        speech_units.extend(inner or [shot])
-    if not shots:
-        speech_units = beats
-    for no, s, e, body in speech_units:
-        length = e - s
+            warn("W10", f"镜头{no} 标注含多个运镜词 {tag_moves}（核对同步/先后关系与表演可见性，不自动删复合运镜）")
+    de, dw, dialogue, total_speech = dialogue_checks(document, dur, (ZH_RATE, EN_RATE, SPEECH_CAP))
+    errors.extend(de)
+    warns.extend(dw)
+    info(f"台词估时 {total_speech:.1f}s")
+    # Ancillary prose hints inspect complete shots, including beat-external text.
+    for no, s, e, body in shots or beats:
         if re.search(r"\d+\s*秒?内.{0,10}\d+\s*次|\d+\s*times? (?:per|in) \d+", body):
             warn("W09", f"镜头{no} 用时间戳控制频次（官方不建议）")
         # Acting quality is a semantic review, never a body-part keyword pass.
         # dialogue
         quotes = QUOTE_RE.findall(body)
-        speakers = set(m.group(1) or m.group(2) for m in SPEAKER_RE.finditer(body))
+        speakers = {row['speaker'] for row in dialogue if row['shot'] == str(no)}
         if quotes:
-            zh = sum(cjk_len(q) for q in quotes)
-            en_words = sum(len(q.split()) for q in quotes if cjk_len(q) == 0)
-            total_speech_chars += zh
-            total_speech_words += en_words
-            est = zh / ZH_RATE + en_words / EN_RATE
-            if est > length * 0.9:
-                warn("W05", f"镜头{no} 台词约 {est:.1f}s 接近或超过镜长 {length}s")
-            if len(speakers) >= 2:
+            if len(speakers) >= 2 and any(not row['explicit'] for row in dialogue if row['shot'] == str(no)):
                 warn("W11", f"镜头{no} 有 {len(speakers)} 个说话人（{', '.join(speakers)}），确认不是同框同时说话")
             if not re.search(r"闭着嘴|抿嘴|不出声|嘴[^，。]{0,4}闭|mouth (?:stays )?closed|lips (?:pressed|closed)", body) and len(speakers) >= 1 and re.search(r"[两二]人|B|另一|对方|listener|the other", body):
                 warn("W05", f"镜头{no} 有台词但未写非说话者嘴部状态")
@@ -315,7 +302,7 @@ def validate(path, duration_override=None, artifact="production", record=None, e
                 break
         for pat in SPEECH_LEAK:
             if re.search(pat, body):
-                warn("W06", f"镜头{no} 疑似引号外的台词描述（模型只念引号内文字）")
+                warn("W06", f"镜头{no} 疑似引号外的台词描述（明确逐字台词，避免仅给概述）")
                 break
 
     prose_body = text
@@ -341,7 +328,8 @@ def validate(path, duration_override=None, artifact="production", record=None, e
     # W18 retired: reusable body actions are not prohibited quotations.
 
     # W13 导演名
-    hits = [n for n in DIRECTOR_NAMES if re.search(re.escape(n), prose_body, re.I)]
+    name_prose = re.sub(r'希区柯克变焦|Hitchcock\s+zoom', '', prose_body, flags=re.I)
+    hits = [n for n in DIRECTOR_NAMES if re.search(re.escape(n), name_prose, re.I)]
     if hits:
         warn("W13", f"Prompt 正文出现导演/影片人名 {hits}（名字不是可观察量，改写为机位/光/运镜/部位）")
 
@@ -349,13 +337,6 @@ def validate(path, duration_override=None, artifact="production", record=None, e
     for pat, label in CLICHE_PATTERNS:
         if re.search(pat, prose_body, re.I):
             warn("W15", f"反套路组合「{label}」（允许，但 QA 里要写一行指回主控句的理由）")
-
-    if speech_units:
-        end = dur if dur is not None and dur > 0 else speech_units[-1][2]
-        est_total = total_speech_chars / ZH_RATE + total_speech_words / EN_RATE
-        if est_total > end * SPEECH_CAP:
-            warn("W05", f"总台词估时 {est_total:.1f}s > clip 的 {SPEECH_CAP:.2f}（{end * SPEECH_CAP:.1f}s）")
-        info(f"台词估时 {est_total:.1f}s")
 
     # W01 negatives（跳过参数表行，只扫 Prompt 正文）
     prose = "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("|"))
@@ -385,6 +366,9 @@ def validate(path, duration_override=None, artifact="production", record=None, e
         fidelity_errors, fidelity = check_record(record, beats, dur)
         errors.extend(fidelity_errors)
     return {"file": str(path), "errors": errors, "warnings": warns, "info": infos, "lens": lens,
+            "task": task, "parameters": parameter_state, "dialogue": dialogue,
+            "assets": {"declared": sorted(f"{kind}{n}" for kind, n in declared), "used": sorted(f"{kind}{n}" for kind, n in used)},
+            "fidelity_scope": "original_exact" if record and record.get("mode") == "raw" else "beat_text_only; other prose and source semantics require review" if record else "not_checked",
             "ext_phrases": {},  # retained return key for 2.2 callers; no word-frequency judging
             "checks": {"format": "failed" if any(e.startswith("E") for e in errors) else "passed",
                        "fidelity": fidelity, "performance": "needs_review", "render": "not_tested"}}
@@ -399,6 +383,8 @@ def main(argv):
     parser.add_argument("--record", type=Path)
     parser.add_argument("--entry-id", type=int)
     parser.add_argument("--batch", choices=("sequence", "independent"), default="sequence")
+    parser.add_argument("--production-record", type=Path, help="actual per-clip assets, parameters and review evidence")
+    parser.add_argument("--require-ready", action="store_true", help="require production preflight, not a render-quality claim")
     args = parser.parse_args(argv[1:])
     if args.record and len(args.paths) != 1:
         parser.error("--record applies to exactly one prompt")
@@ -406,11 +392,18 @@ def main(argv):
         parser.error("raw requires --entry-id and does not take --record")
     if args.entry_id is not None and args.artifact != "raw":
         parser.error("--entry-id requires --artifact raw")
+    if (args.production_record or args.require_ready) and (args.artifact != "production" or len(args.paths) != 1):
+        parser.error("production preflight applies to one production prompt")
+    if args.require_ready and not args.production_record:
+        parser.error("--require-ready requires --production-record")
     try:
         record = json.loads(args.record.read_text(encoding="utf-8")) if args.record else None
         if args.record and not isinstance(record, dict):
             raise ValueError("record must be an object")
         results = [validate(p, args.duration, args.artifact, record, args.entry_id) for p in args.paths]
+        if args.production_record:
+            from production_preflight import preflight
+            results[0]["preflight"] = preflight(args.production_record, Path(args.paths[0]), results[0])
     except (OSError, ValueError, TypeError, KeyError) as exc:
         parser.error(str(exc))
     as_json = args.json
@@ -435,12 +428,14 @@ def main(argv):
             if result["lens"]:
                 print(f"INFO  透镜 {result['lens']}")
             print("CHECK " + json.dumps(result["checks"], ensure_ascii=False))
+            if "preflight" in result:
+                print("PREFLIGHT " + json.dumps(result["preflight"], ensure_ascii=False))
             print(f"== {len(result['errors'])} error(s), {len(result['warnings'])} warning(s)")
         if cross:
             print("== cross-clip")
             for c in cross:
                 print(f"WARN  {c}")
-    return 1 if any(r["errors"] for r in results) else 0
+    return 1 if any(r["errors"] or (args.require_ready and r.get("preflight", {}).get("status") != "passed") for r in results) else 0
 
 
 if __name__ == "__main__":

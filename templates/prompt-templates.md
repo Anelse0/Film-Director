@@ -1,9 +1,9 @@
 # Seedance 2.5 Prompt 骨架（按任务类型）
 
-以下 T1–T9 完整生产骨架遵守四段顺序：素材指代 → 一句话概述 → 具体情节（镜头 N + 时间戳）→ 贯穿细节。`[官方]`
+T1–T9 是按任务裁剪的本地生产骨架，基于官方的素材指代、概述、情节和贯穿细节结构；编辑/转场不强填虚构镜头或起始画面。参数和真实素材记录见 `references/production-workflow.md`，仅套模板不等于生产就绪。
 `{}` 内为槽位，全部来自分镜卡 C/E 层。校验脚本识别【】标签，请保留。
 
-**Prompt 正文里不出现导演、影片、摄影师名字**（校验 W13）。透镜只写在文末 E 层参数表的「透镜」行，供多文件校验用。
+**不以导演、影片、摄影师名字代替可执行描述；通用技术名可配说明使用**（校验 W13）。透镜只写在文末 E 层参数表的「透镜」行，供多文件校验用。
 
 ---
 
@@ -38,11 +38,11 @@ raw 原文直接交付所选完整正文，不套 P 骨架。production 可在�
 【画面基调】{媒介与质感}；主光源：{光源+方向+质地}；{色调}；{景深/镜头质感}；{颗粒或无}。
 【起始状态】{A 外观锁}在画面{左/右}，面朝{方向}，手里{持物}；{B 外观锁}在画面{左/右}…；机位{景别+角度}；{空间陈设两项}。
 【分镜时间线】
-镜头1（0-{a}s）：【{景别}，{角度}，{运镜}，{构图位置}】{动作链}。视线：{…}。表情：{部位描述}。台词 ({角色}): "{逐字}"（{语言}，{音量/语速/停顿}）；此时{另一角色}闭着嘴，{听者动作}。声音：{环境/动作音}。
+镜头1（0-{a}s）：【{景别}，{角度}，{运镜}，{构图位置}】{动作链}。视线：{…}。表情：{部位描述}。台词（{角色}，{台词起}-{台词止}s，{语言}）："{逐字}"（{音量/语速/停顿}）；此时{另一角色}闭着嘴，{听者动作}。声音：{环境/动作音}。
 镜头2（{a}-{b}s）：…
 …
 镜头N（{…}-{时长}s）：…结束时{结束状态}。
-【贯穿要求】{A 外观锁}；{B 外观锁}；{A}始终在画{左}，{B}在画{右}；主光源始终来自{方向}；{物件}全程{状态}；{声音策略：无 bgm，只生成环境音、动作音与台词}；不要字幕。
+【贯穿要求】{A 外观锁}；{B 外观锁}；{人物空间与屏幕方向，随已确认走位更新}；主光源始终来自{方向}；{物件恒定属性及分段状态，不与动作矛盾}；{声音策略：无 bgm，只生成环境音、动作音与台词}；不要字幕。
 ```
 
 ## T3 动作 / 运镜参考
@@ -61,7 +61,7 @@ raw 原文直接交付所选完整正文，不套 P 骨架。production 可在�
 
 ```
 以图片1至图片{N}的顺序作为关键帧。
-【素材绑定】图1–图{N} = 关键帧分镜，按顺序；图{N+1} = {角色}外观…
+【素材绑定】{逐项列出图1、图2…图N的实际用途，不用范围缩写代替绑定}；图{N+1} = {角色}外观…
 【总述】…
 【画面基调】…
 【分镜时间线】
@@ -81,11 +81,11 @@ raw 原文直接交付所选完整正文，不套 P 骨架。production 可在�
 镜头1（0-{a}s，对应第1格）：…
 【贯穿要求】…；不要字幕。
 ```
-`[官方]` ≤15 格；线稿优先；图上少写字。
+`[官方建议]` 约15格以下更适合；线稿优先；图上少写字。
 
 ## T6 首尾帧（严格）
 
-参数：图1 role=first_frame，图2 role=last_frame，ratio=adaptive，两图画幅一致。
+参数：图1 role=first_frame，图2 role=last_frame，ratio=adaptive，两图画幅建议一致（不同会拉伸尾帧）。
 ```
 【素材绑定】图1 = 首帧（严格），图2 = 尾帧（严格）。
 【总述】…
@@ -98,16 +98,18 @@ raw 原文直接交付所选完整正文，不套 P 骨架。production 可在�
 
 ## T7 视频编辑（有锁定）
 
-参数：视频 role=reference_video，ratio=adaptive，duration=-1，output_format=mov。
+参数：视频 role=reference_video，ratio=adaptive，duration=-1，output_format=mov 建议。
 ```
+【素材绑定】视频1 = 待编辑原视频；{仅在实际上传时列替换目标图1等}。
 编辑视频：仅修改 @视频1 中 {秒段或对象} 的 {A} 为 {B}，{过程描述：从 A 逐渐变为 B / 直接替换}，其余画面、机位、光线、表演节奏与声音全部保持不变。{若有参考图：@图1 = 替换目标的外观，只参考…}。{声音编辑：把 @视频1 中的台词改为 "…"，{语言/口音}，口型对应改变；无字幕}。
 ```
 触发词必须出现其一：编辑视频 / 增加 / 加上 / 删除 / 去掉 / 修改 / 替换 / 改成。`[官方]`
 
 ## T8 视频延长（有锁定）
 
-参数：视频 role=reference_video，ratio=adaptive，duration={N}，输入输出均 mov。
+参数：视频 role=reference_video，ratio=adaptive，duration={N}，输入输出 mov 为建议。
 ```
+【素材绑定】视频1 = 待延长原视频。
 向后延长 @视频1 {N} 秒，画面与声音无缝衔接。
 【起始状态】（= @视频1 末尾状态，重写一遍）
 【分镜时间线】
@@ -119,6 +121,7 @@ raw 原文直接交付所选完整正文，不套 P 骨架。production 可在�
 ## T9 无缝转场
 
 ```
+【素材绑定】视频1 = 前段原视频；视频2 = 后段原视频。
 将 @视频1 和 @视频2 衔接起来，@视频1 结尾 {运镜描述} 后无缝转场到 @视频2，转场过程中 {A 变成 B 的可见过程}，不改变两个视频本身的内容。
 ```
 
@@ -132,7 +135,11 @@ OVERVIEW: {duration}-second {aspect} {medium}, {location + time}, {one-line even
 LOOK: {medium/texture}; key light: {source + direction + quality}; {palette}; {depth of field/lens feel}.
 OPENING STATE: {A lock} stands frame-left facing {…}, holding {…}; {B lock} frame-right…; camera {shot size + angle}; {two set details}.
 TIMELINE:
-Shot 1 (0-{a}s): [{shot size}, {angle}, {one move}, {frame position}] {action chain}. Eyeline: {…}. Face: {part-level}. {A} says (English, {volume/pace/pause}): "{exact line}"; {B}'s mouth stays closed, {listener action}. Sound: {…}.
+Shot 1 (0-{a}s): [{shot size}, {angle}, {one move}, {frame position}] {action chain}. Eyeline: {…}. Face: {part-level}. {A} says (English, {speech_start}-{speech_end}s, {volume/pace/pause}): "{exact line}"; {B}'s mouth stays closed, {listener action}. Sound: {…}.
 Shot 2 ({a}-{b}s): …
-GLOBAL RULES: {A lock}; {B lock}; {A} stays frame-left, {B} frame-right; key light always from {direction}; {prop state}; no music, only room tone, action sounds and dialogue; no subtitles.
+GLOBAL RULES: {A lock}; {B lock}; {screen direction follows the confirmed blocking}; key light always from {direction}; {prop state}; no music, only room tone, action sounds and dialogue; no subtitles.
 ```
+
+## E 参数与交付状态
+
+每条生产 Prompt 后附 S6 的 E 表，任务类型使用 production-workflow.md 的 task 标识，填写实际 role、ratio、duration、输出格式。T2 中的侧面图/音频、T4 的额外角色图均按现有资源选用，不要求凑齐。文件级生产记录不粘贴进模型 Prompt。

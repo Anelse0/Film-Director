@@ -1,6 +1,6 @@
 # film-seedance-director
 
-版本 **2.3.0**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含可直接使用的情绪表演库与强度/克制调节。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
+版本 **2.3.1**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含可直接使用的情绪表演库与强度/克制调节。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
 
 ## 一句话
 
@@ -28,7 +28,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本
 | `references/stage-3b-story.md` | S3b 故事开发：主传统 / 世界观 / 人物六格 / 情绪温度表 / 场景清单 |
 | `references/stage-3c-script.md` | S3c 剧本落地：四问 / 节拍表 / 剧本页 / 台词通用关与副词规则 |
 | `references/scene-parameters.md` | 场景参数卡：六参数 → 台词 / 表演 / 分镜 / 结构 / 模型执行的规则取值；预设只是参数组合 |
-| `references/screenwriting-traditions.md` | 好莱坞 · 欧洲 · 韩国 × 六维度；按格式选主传统；24 条可迁移规则 |
+| `references/screenwriting-traditions.md` | 基于第一手编剧/导演资料，按场景问题选方法，不按地区或配额套写 |
 | `references/emotion-performance.md` | 原文/微调/重组，强度与克制独立，高光时间编排及保真 |
 | `references/performance-record.md` | 可选编译前记录与自动检查接口 |
 | `scripts/emotion_library.py` | 按编号或关键词读取完整条目，`--list` 查看索引 |
@@ -56,7 +56,15 @@ python3 scripts/validate_prompt.py <fragment.md> --artifact performance --record
 python3 scripts/validate_prompt.py <original.txt> --artifact raw --entry-id 6
 ```
 
-退出码 0 只代表无确定性错误，不代表表演或视频质量通过。JSON 单列格式、保真、语义待审阅与成片未验证。多文件默认按连续片段做提示，独立 A/B 对照加 `--batch independent`。Python 3.9+，运行脚本只依赖标准库。
+退出码 0 只代表无确定性错误，不代表表演或视频质量通过。JSON 单列格式、保真、语义待审阅与成片未验证。多文件默认按连续片段做提示，独立 A/B 对照加 `--batch independent`。Python 3.9+，基础脚本仅用标准库；真实媒体预检另需 PATH 中的 ffprobe（测试另用 ffmpeg）。
+
+完整生产预检：
+
+```bash
+python3 scripts/validate_prompt.py <prompt.md> --production-record <production.json> --require-ready --json
+```
+
+接口与参数适配见 `references/production-workflow.md`。新版验收和30秒对照见 `examples/production/acceptance-2.3.1.md`；可直接测试 `examples/production/30s-fight-t2v.prompt.md`。原R2V案例需补真实素材；不会把虚构图号当就绪。
 
 ## 项目目录约定
 

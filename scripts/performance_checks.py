@@ -3,27 +3,10 @@ import math
 import re
 
 from emotion_library import load_library
-
-NUMBER = r"\d+(?:\.\d+)?"
-BEAT_RE = re.compile(
-    rf"^\s*(?:(?:节拍|Beat)\s+([^\s（(]+)\s*[（(])?"
-    rf"({NUMBER})\s*(?:s|秒)?\s*[-–—~]\s*({NUMBER})\s*(?:s|秒)"
-    r"\s*[)）]?\s*[:：]\s*", re.M | re.I)
-BOUNDARY_RE = re.compile(r"^\s*(?:【|(?:镜头|Shot)\s*\d+\s*[（(]|\|\s*(?:项|duration)\s*\||#{1,6}\s|```)", re.M | re.I)
-
+from prompt_structure import Document
 
 def split_beats(text):
-    matches = list(BEAT_RE.finditer(text))
-    beats = []
-    for i, match in enumerate(matches):
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        body = text[match.end():end]
-        boundary = BOUNDARY_RE.search(body)
-        if boundary:
-            body = body[:boundary.start()]
-        beats.append((match.group(1) or str(i + 1), float(match.group(2)),
-                      float(match.group(3)), body.strip()))
-    return beats
+    return [unit.tuple() for unit in Document(text).beats]
 
 
 def timing_errors(units, duration, shots=None, complete=True):
@@ -101,6 +84,8 @@ def check_record(record, units, duration, library=None):
             body = ""
         if index < len(units):
             did, ds, de, dbody = units[index]
+            if ident != did:
+                errors.append(f"F02 节拍 {ident} C/D 标识不一致（输出 {did}）")
             if (start, end) != (ds, de):
                 errors.append(f"F02 节拍 {ident} C/D 时间不一致")
             if body != dbody:

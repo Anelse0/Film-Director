@@ -14,8 +14,8 @@ echo "$out" | grep -q "0 error(s), 0 warning(s)"; check "example-01 clean" $? "$
 
 out=$($V examples/example-02-lens-B-haneke.prompt.md); rc=$?
 check "lens-B exits 0" $rc "$out"
-echo "$out" | grep -q "0 error(s), 1 warning(s)"; check "lens-B exactly W11" $? "$(echo "$out" | grep -E 'WARN|==')"
-echo "$out" | grep -q "W11"; check "lens-B W11 present" $? ""
+echo "$out" | grep -q "W11"; rc=$?
+[ "$rc" -ne 0 ]; check "explicit sequential speakers are not overlap" $? "$out"
 
 out=$($V examples/example-03-yogurt-comedy.prompt.md); rc=$?
 check "example-03 exits 0" $rc "$out"
@@ -23,7 +23,7 @@ echo "$out" | grep -q "0 error(s), 0 warning(s)"; check "example-03 clean" $? "$
 
 out=$($V examples/example-04-parameters-fight.prompt.md); rc=$?
 check "example-04 exits 0" $rc "$out"
-echo "$out" | grep -q "0 error(s), 1 warning(s)"; check "example-04 exactly W11" $? "$(echo "$out" | grep -E 'WARN|==')"
+echo "$out" | grep -q "W05"; check "original long line retains timing review" $? "$out"
 
 out=$($V examples/bad-example.prompt.md); rc=$?
 [ $rc -eq 1 ]; check "bad-1 exits 1" $? "rc=$rc"

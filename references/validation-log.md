@@ -29,3 +29,6 @@
 
 | 日期 | 文件 § | 原标签 | 新标签 | 依据（账本行号） |
 |---|---|---|---|---|
+| 2026-09-05 | capabilities / S1 / S5b / S6 | MOV、同画幅及单一运镜被混作硬要求 | MOV/同画幅为官方建议；单一运镜为本地简化建议 | 重读用户PDF锁定任务章节；ASC Camera Movement，链接见director-lenses |
+| 2026-09-05 | capabilities / S6 | 仅字幕音频可负向 | 明确支持不等于仅支持，视觉排除按意图与风险使用 | 用户PDF负向说明及宫格范例；Higgsfield指南，见source-analysis |
+| 2026-09-05 | scene-parameters / S4 | 密对白默认加速 | 密度占比与语速独立的本地估时 | 独立参数回归；非模型能力或成片证据 |

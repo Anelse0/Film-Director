@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "adapter": "ark-seedance-2.5-guide",
+  "task": "r2v",
+  "prompt_sha256": "REPLACE_WITH_ACTUAL_SHA256",
+  "parameters": {
+    "ratio": "16:9",
+    "duration": 30,
+    "output_format": "mp4"
+  },
+  "assets": [
+    {
+      "id": "img1",
+      "path": "../assets/actual-character.png",
+      "sha256": "REPLACE_WITH_ACTUAL_SHA256",
+      "role": "reference_image",
+      "purpose": "已核对的角色外观"
+    }
+  ],
+  "upstream": [
+    {
+      "path": "../04_shots/clip.md",
+      "sha256": "REPLACE_WITH_ACTUAL_SHA256"
+    }
+  ],
+  "reviews": [
+    {
+      "category": "creative",
+      "status": "reviewed",
+      "reviewer": "填写实际审阅者",
+      "evidence": "填写具体台词/因果证据"
+    },
+    {
+      "category": "performance",
+      "status": "reviewed",
+      "reviewer": "填写实际审阅者",
+      "evidence": "填写高光、时间和来源关系的核对证据"
+    },
+    {
+      "category": "continuity",
+      "status": "reviewed",
+      "reviewer": "填写实际审阅者",
+      "evidence": "填写空间、道具与末态核对证据"
+    }
+  ],
+  "warning_decisions": []
+}

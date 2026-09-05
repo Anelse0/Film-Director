@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "adapter": "ark-seedance-2.5-guide",
+  "task": "t2v",
+  "prompt_sha256": "b328e46b8422e98b921ce2b3a4fe4dbae90c58682cf596f0d107d27d04d314ed",
+  "parameters": {
+    "ratio": "16:9",
+    "duration": 30,
+    "output_format": "mp4"
+  },
+  "assets": [],
+  "upstream": [
+    {
+      "path": "../example-04-parameters-fight.md",
+      "sha256": "556ceddb0f5c5d8eaadf548bcd902099f8a6c0df72d57944e511d30af7dcd0db"
+    },
+    {
+      "path": "../example-04-parameters-fight.prompt.md",
+      "sha256": "eda19b683cdbb8617a007a4d60cf381f217b6eceef895b7716e45098eb360fdf"
+    }
+  ],
+  "reviews": [
+    {
+      "category": "creative",
+      "status": "reviewed",
+      "reviewer": "Codex 2.3.1 文本审阅",
+      "evidence": "无素材对照沿用已存在的30秒场景：七条台词逐字保留，收袜子→时间表→重复缺席→旧承诺→责任反推→今天回来了的回应链未改。不代表用户新批准或视频结果。"
+    },
+    {
+      "category": "performance",
+      "status": "reviewed",
+      "reviewer": "Codex 2.3.1 文本审阅",
+      "evidence": "21–24秒保留三秒沉默，24–27秒留给低声短句和看箱；没有附加哭泣或恢复平静。15–21秒反问与起身、踢箱、半步逼近同步，末镜3秒仅跨约一步半进卧室。动作执行尚待成片。"
+    },
+    {
+      "category": "continuity",
+      "status": "reviewed",
+      "reviewer": "Codex 2.3.1 文本审阅",
+      "evidence": "箱盖在镜头5合拢后结尾保持合拢；白衬衫左手持握、右手压住；许彤仅末镜经周远后方移到画左，不与全局左右说明冲突。无素材不声称角色身份锁定。"
+    }
+  ],
+  "warning_decisions": [
+    {
+      "warning": "W05 许彤 台词约 5.2s 接近或超过窗口 5s",
+      "reason": "本句明确快语速，21字按约5字/秒读约4.2秒，留0.8秒换气；半步与台词同步。保留完整原句，不把全场慢句统一加速；此处须实际生成验证。"
+    },
+    {
+      "warning": "W05 单元 3 台词累计 5.2s 超过可用窗口",
+      "reason": "与上一条为同一句的父镜累计检查；该镜只有这句，采用上述本句约5字/秒的排练估时，保留抽卡风险。"
+    }
+  ]
+}
