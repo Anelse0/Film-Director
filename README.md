@@ -1,8 +1,8 @@
 # film-seedance-director
 
-版本 **2.5.0**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含情绪表演库、强度/克制调节与基于交流处境的对白开发。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
+版本 **2.5.5**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含情绪表演库、强度/克制调节、基于交流处境的对白开发与从想法到故事的开发方法。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
 
-2.5.0：解除逐句预排与固定回避，集中维护人物声音/对白诊断，补强道具和视点检查；不增加“自然台词”句式模板。本次按用户要求全程无子代理，验收为**非盲文本验证**，不宣称创意质量盲测胜出或成片已验证。[验收报告](tests/acceptance-2.5.0/report.md) · [30秒生产 Demo](tests/acceptance-2.5.0/demo.prompt.md)。
+2.5.5：故事开发与编剧工作流升级——按意图与材料成熟度路由，S3a/S3b/S3c 是成果类型不是关卡；候选按人物 / 关系 / 事件后果 / 观众理由比较；关键场景先行；故事正文优先；叙事组织四判断；对白按实际原因修订；修订账本与停止条件。生产与表演核心保持 2.5.0 不变（哈希回归）。**工程验收已通过；完整创作任务与三配置对照尚未执行**，见 [验收协议](tests/acceptance-2.5.5/protocol.md) 与 [工程报告](tests/acceptance-2.5.5/engineering-report.md)。2.5.0 的非盲对白验收见 [报告](tests/acceptance-2.5.0/report.md)。
 
 ## 一句话
 
@@ -14,7 +14,7 @@
 S1 资源读取 → S2 需求识别 → 故事开发（S3a 概念 ↔ S3b 故事 ↔ S3c 剧本）→ S4 表演 → S5 分镜与参考资产 → S6 Prompt → S7 检查
 ```
 
-可从已有材料对应阶段进入。纯表演测试走共用 S4 模块，不强制故事、参考图或停靠。可直接说“10秒，从愤怒到委屈，最后忍住眼泪”或“原文直出 Crying”。
+创作前端可迭代（概念 ↔ 故事 ↔ 剧本，允许关键场景先行），生产后端走稳定步骤。入口由创作意图与材料成熟度决定（`SKILL.md` §需求识别）。纯表演测试走共用 S4 模块，不强制故事、参考图或停靠。可直接说“10秒，从愤怒到委屈，最后忍住眼泪”或“原文直出 Crying”。
 
 交付原则：对话是默认，落盘只在停靠确认后或用户明确要求时。运行模式：**概念**（只到 S3a，对话里给创作判断与候选后停，候选数量由任务定）、**单阶段**、**停靠式**（默认，概念、故事、剧本与分镜按需停靠）、**全流程**（用户说"一次跑完"）。见 SKILL.md「运行模式与停靠点」。
 
@@ -24,16 +24,16 @@ S1 资源读取 → S2 需求识别 → 故事开发（S3a 概念 ↔ S3b 故事
 |---|---|
 | `SKILL.md` | 入口：路由、五层分离、硬规则、输出契约 |
 | `references/seedance-2.5-capabilities.md` | 写任何模型能力/参数前；事实分级表 |
-| `references/stage-1-intake.md` | S1 / S2：登记、任务树（R2V 核心）、项目目录 |
-| `references/concept-generation.md` | S3a 概念模式契约：创作判断 / 默认地图 / 入口 / 研究服务缺口 / 候选发展 / 试写 |
+| `references/stage-1-intake.md` | S1 / S2：登记、创作意图与三轴、按材料成熟度的入口表、任务树（R2V 核心）、项目目录 |
+| `references/concept-generation.md` | S3a 概念模式契约：创作判断 / 默认地图 / 入口 / 研究服务缺口 / 候选比较维度 / 关键场景先行 |
 | `references/research-to-craft.md` | S3a–S4：研究材料如何进入创作（缺口 → 发现 / 可信范围 / 影响的决定） |
 | `references/stage-3a-concept.md` | S3a 概念长什么样：素材入口 / 候选弱点 / 可选的主控句、三问与默认画面地图 / 交付格式 |
-| `references/stage-3b-story.md` | S3b 故事开发：方法 / 世界观 / 本场人物依据 / 情绪温度 / 场景清单 |
+| `references/stage-3b-story.md` | S3b 故事开发：故事正文优先 / 叙事组织四判断 / 世界观与人物按需 / 温度表与场景清单按需 |
 | `references/stage-3c-script.md` | S3c：多种试写入口 / 连续交流诊断 / 节拍估时 / 物件状态 / 定点重写 |
 | `references/character-scene-development.md` | S3b–S4 共用：人物与观众责任、交流处境、声音的基础/对象/当下、分层诊断 |
 | `references/dialogue-observations.md` | 语言或人物有缺口时：中文交流材料、创作者方法及迁移边界 |
 | `references/dialogue-diagnostics.md` | 具体诊断困难时：局部改稿得失与反例，不是台词答案库 |
-| `references/creative-loop.md` | S3a–S5 共用：允许的回流、收到批评后先诊断层级、重写纪律、场景写作可选步骤 |
+| `references/creative-loop.md` | S3a–S5 共用：允许的回流、收到批评后先诊断层级、修订账本与停止条件、场景写作可选步骤 |
 | `references/preference-ledger.md` | 用户确认过的偏好：喜欢哪种效果 / 在哪类作品适用 / 反例；重写前先查 |
 | `references/scene-parameters.md` | 场景参数卡：六参数 → 台词 / 表演 / 分镜 / 结构 / 模型执行的规则取值；预设只是参数组合 |
 | `references/screenwriting-traditions.md` | 基于第一手编剧/导演资料，按场景问题选方法，不按地区或配额套写 |
@@ -50,6 +50,7 @@ S1 资源读取 → S2 需求识别 → 故事开发（S3a 概念 ↔ S3b 故事
 | `templates/*.md` | 各阶段产物骨架 |
 | `scripts/validate_prompt.py` | S6 之后必跑 |
 | `scripts/validate_concept.py` | 概念选定落盘后跑；只查格式与完整性，不判断创意 |
+| `scripts/route_check.py` | S2 路由自检：同一请求换种说法不应改变范围与保存行为 |
 | `scripts/blind_eval.py` + `tests/creative-eval.md` | 旧版 / 新版盲选评测：打包、记录判定、揭晓 |
 | `examples/concept-worked-examples.md` | 概念协议跑出来长什么样（概念模式默认不读，禁止复用候选） |
 | `examples/example-01-kitchen-keys*.md` | 完整走查 + 通过校验的 Prompt |
@@ -76,6 +77,12 @@ python3 scripts/validate_prompt.py <prompt.md> --production-record <production.j
 ```
 
 接口与参数适配见 `references/production-workflow.md`。生产侧验收和30秒对照见 `examples/production/acceptance-2.3.1.md`；可直接测试 `examples/production/30s-fight-t2v.prompt.md`。原R2V案例需补真实素材；不会把虚构图号当就绪。
+
+路由自检：
+
+```bash
+python3 scripts/route_check.py "写一个关于搬家的短片" [--material idea|fragment|story|script|storyboard|footage]
+```
 
 创意评测（2.4.0 起）：
 
