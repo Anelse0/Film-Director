@@ -6,7 +6,7 @@ Usage: validate_prompt.py FILE... [--duration N] [--json]
 Default production CLI remains compatible. ERROR is a format/contract issue,
 not necessarily an official model limitation. WARN requires review.
 F01-F06 concern record/schema/text fidelity; E20 concerns performance timing.
-W14 reviews identical adjacent complete blocks; W18 is retired.
+W14 reviews identical adjacent complete blocks; W18 and W19 are retired.
 Semantic acting quality is always needs_review; render is always not_tested.
 Exit 0 means no deterministic errors, 1 check failure, 2 invalid invocation/input.
 """
@@ -19,6 +19,7 @@ from pathlib import Path
 
 from performance_checks import split_beats, timing_errors, check_record, check_raw, repeated_blocks
 from prompt_structure import Document, dialogue_checks
+from prose_hints import has_mouth_direction, has_subtitle_policy, has_sound_policy
 from production_contract import metadata, task_type, parameters, roles_from_fields, check_parameters, TASKS
 
 # ---------- 词表 ----------
@@ -156,9 +157,9 @@ def validate(path, duration_override=None, artifact="production", record=None, e
         err("E12", "缺少【起始状态】/OPENING STATE 段")
     if artifact == "production" and not is_edit and not find_section(text, "global"):
         warn("W07", "缺少【贯穿要求】/GLOBAL RULES 段")
-    if artifact == "production" and not re.search(r"不要字幕|无字幕|不额外加入.{0,4}字幕|no subtitles|no captions", text, re.I):
+    if artifact == "production" and not has_subtitle_policy(text):
         warn("W07", "未声明字幕负向（建议加「不要字幕」）")
-    if artifact == "production" and not re.search(r"bgm|背景音乐|环境音|music|room tone|ambien", text, re.I):
+    if artifact == "production" and not has_sound_policy(text):
         warn("W07", "未声明声音策略（无 bgm / 只生成环境音 / bgm 描述）")
 
     # E07 triggers
@@ -294,12 +295,10 @@ def validate(path, duration_override=None, artifact="production", record=None, e
         if quotes:
             if len(speakers) >= 2 and any(not row['explicit'] for row in dialogue if row['shot'] == str(no)):
                 warn("W11", f"镜头{no} 有 {len(speakers)} 个说话人（{', '.join(speakers)}），确认不是同框同时说话")
-            if not re.search(r"闭着嘴|抿嘴|不出声|嘴[^，。]{0,4}闭|mouth (?:stays )?closed|lips (?:pressed|closed)", body) and len(speakers) >= 1 and re.search(r"[两二]人|B|另一|对方|listener|the other", body):
+            if not has_mouth_direction(body) and len(speakers) >= 1 and re.search(r"[两二]人|B|另一|对方|listener|the other", body):
                 warn("W05", f"镜头{no} 有台词但未写非说话者嘴部状态")
-        for q in quotes:
-            if len(re.findall(r"[。！？!?]", q)) >= 3:
-                warn("W19", f"镜头{no} 台词「{q[:20]}…」含多个终止标点；审阅是否挤入无关意图，不按标点自动拆句")
-                break
+        # W19 retired: punctuation cannot infer unrelated dramatic intentions.
+        # Actual speech-window/occupancy checks above remain active.
         for pat in SPEECH_LEAK:
             if re.search(pat, body):
                 warn("W06", f"镜头{no} 疑似引号外的台词描述（明确逐字台词，避免仅给概述）")
