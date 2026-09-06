@@ -29,7 +29,7 @@ description: 影视创作到 Seedance 2.5 Prompt 的工作流：概念、故事�
 S1 资源读取 → S2 任务识别 → S3a 概念 ▮ → S3b 故事开发 ▮ → S3c 剧本落地 ▮ → S4 表演外化 → S5 导演与分镜 ▮（含 S5b 参考资产）→ S6 Prompt 编译 → S7 检查
 ```
 
-▮ = 停靠点（等用户决定）。**创作层有三层：概念说为什么值得拍，故事说拍什么、谁、按什么顺序，剧本才写台词。** 概念一选定就跳到分镜，是 1.x 版最大的错误。
+▮ = 停靠点（等用户决定）。**创作层有三层：概念说为什么值得拍，故事组织人物与事件，剧本交付完整场景与台词。** 开发可以从一句话、人物或事件试写进入，再回流核对故事；试写不等于批准上游，也不等于可直接编译生产。
 
 | 阶段 | 读什么 | 产出什么 | 停靠 |
 |---|---|---|---|
@@ -46,7 +46,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 ▮ → S3b 故事开发 ▮ 
 
 **只读当前阶段需要的文件。** 概念模式只读两三个文件。
 **按类型叠加**：基调为动作 / 悬疑恐怖 / UGC 广告 / 蒙太奇时，S3b–S5 加读 `references/genre-packs.md` 对应一包。
-**剧情创作共用**：`references/anti-mechanical.md` ＋ `references/causal-chain.md` ＋ `references/character-scene-development.md`（人物侧 / 观众侧问题、叙事方式、人物声音、对白审阅）＋ `references/research-to-craft.md`（研究如何进入创作）＋ `references/creative-loop.md`（回流与诊断后重写）。表演测试以状态衔接替代剧情因果链，不为填表增加故事。用户确认过的偏好记在 `references/preference-ledger.md`，重写前先查。
+**剧情创作共用**：`references/anti-mechanical.md` 与 `references/character-scene-development.md`（交流处境、人物声音、连续对话诊断）。追查因果时读 `references/causal-chain.md`；缺事实或语言材料时读 `references/research-to-craft.md`；重写时读 `references/creative-loop.md`，并查 `references/preference-ledger.md` 中用户确认过的偏好。表演测试以状态衔接替代剧情链，不为填表增加故事。
 
 ## 交付原则：对话是默认，落盘是显式动作
 
@@ -73,7 +73,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 ▮ → S3b 故事开发 ▮ 
 - **S5 后必停**：分镜卡是最后一个人类可读的决策层；资产清单随分镜一起确认。
 - 方向选择可多选；候选选择只问"选哪个 / 按推荐继续 / 要不要先试写一段"；其余停靠只问"按此继续？或改哪里"。
 - 用户附带目标格式（"30 秒先导"、"三集短剧"）时，格式约束从 S3a 起生效，但不因此跳过 S3b / S3c。
-- **每个停靠点第一行回显场景参数卡**（`references/scene-parameters.md`：强度 · 方向 · 信息 · 权力 · 进场温度 · 密度），让用户在早期纠正。
+- **停靠点简短回显影响本次决策的参数与锁定项**（`references/scene-parameters.md`），无需为填满六项编造信息。
 
 ## 五层分离（贯穿 S5–S7）
 
