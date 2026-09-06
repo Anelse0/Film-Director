@@ -47,7 +47,7 @@ S3b/S3c 的创作工具。好莱坞、欧洲、韩国都包含不同作者和类
 
 为满足规则拿道具；每次争吵都是三级升级；每场低声结束；把地区当单一写法；删关键细节才塞进时长；审阅没有对应台词、动作或镜头证据。回到人物与实际场景，不再加通用禁令。
 
-## 五、核实依据（2026-09-05）
+## 五、核实依据（2026-09-05；2.5.5 新增行标注 2026-09-06，本次无网络核实，原页均未访问）
 
 ### 方法资源（2.4.0 起按"解决的问题 → 作用机制 → 适用边界 → 原始依据"记录）
 
@@ -58,6 +58,10 @@ S3b/S3c 的创作工具。好莱坞、欧洲、韩国都包含不同作者和类
 | 每场戏都被写成对抗 | 以欲望与关系驱动场景：张力来自距离、允许与代价，而非冲突 | 是可选方法，不是"必须无冲突"的新规则；需要观众看见"允许"的证据 | [Céline Sciamma，BAFTA 编剧讲座 2019](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-series-2019-celine-sciamma/)（原页需人工访问）；"没有冲突不等于没有张力"经 [Sight & Sound](https://www.bfi.org.uk/sight-and-sound/interviews/no-mans-land-celine-sciamma-portrait-lady-fire)、[RogerEbert.com](https://www.rogerebert.com/interviews/love-dialogue-celine-sciamma-on-portrait-of-a-lady-on-fire) 访谈核对 `[第三方转述]` |
 | 台词是交错独白，人物没听见对方 | 节目讨论回应关系、人物声音及作者是否借人物交代剧情，也谈情绪影响语言组织 | 统一转为 `character-scene-development.md` 的连续交流诊断；不要求峰值破碎、每句接上句或人物永远回避 | [John August / Craig Mazin，Scriptnotes 609](https://johnaugust.com/2023/scriptnotes-episode-609-dialogue-and-character-voice-transcript) `[第三方]` |
 | 场景从第一个想到的写法直接落笔 | 十一步：必须发生什么 / 删掉会怎样 / 谁在场 / 地点还能是哪 / 意外的可能 / 值得多长 / 三种进入方式 / 脑内排演 / 潦草版 / 正稿 / 反复 | 作为创作回路里的可选工具，不要求每场走完全部步骤 | [John August，How to Write a Scene（2007）](https://johnaugust.com/2007/write-scene) `[第三方]` |
+| 一场戏只负责交代信息，没人想拍它 | 区分"想要的场景"与"剧情需要的场景"，检查必要内容能否成为有创作欲望的场景：交代本身变成值得看的体验，而不是被跳过的程序 | 是审阅问题（这场戏是否只在交代），不是要求每个故事列两张清单；用户锁定的场景不因"不想拍"删除 | [Céline Sciamma，BAFTA 编剧讲座 2019](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-series-2019-celine-sciamma/)（原页未访问，要点经转载核对）`[第三方转述]` |
+| 概念卡先于一切，试写被当成插图 | 从感兴趣的场景、句子和片段开始，再组织结构；片段里人物的回应决定故事假设 | 开放"关键场景 → 人物发现 → 故事整理"入口；保留概念判断作为核对工具是本 Skill 的选择 `[推论]`；不推为任何任务都不做梗概 | [Dee Rees，BAFTA 编剧讲座](https://www.bafta.org/)（讲座年份与原页均未核实，要点经转述）`[第三方转述]`；[Tony Gilroy，BAFTA 编剧讲座 2013](https://www.bafta.org/media-centre/press-releases/screenwriters-lecture-series-2013-tony-gilroy/)（从律师处境的试写对话发展项目）`[第三方转述]` |
+| 人物靠标签堆出复杂性 | 理解人的矛盾与复杂性，通过人物在具体关系中的选择发展人物 | 不增加人物档案字段；复杂性来自选择的可理解性，不来自设定数量 | 同上 Gilroy 2013 `[第三方转述]` |
+| 场与场只有因果，观众的理解没有被组织 | 事件顺序与呈现顺序分别设计；时间组织改变观众对同一事件的理解与情感 | 吸收"观众何时知道什么"的判断，不要求倒叙或双时间线 | [Greta Gerwig 谈《小妇人》，Scriptnotes 访谈](https://johnaugust.com/)（集数未核实，原页未访问）`[第三方转述]` |
 | 多写几个候选是否自动带来多样性 | 实验发现 AI 提供点子后个体作品评价改善（尤其低基线作者），但作品之间更相似 | 说明多样性需要单独检查；不能直接证明本 Skill 某项改法有效，仍须对照盲测 | [Doshi & Hauser 2024，arXiv:2312.00506](https://arxiv.org/abs/2312.00506) `[第三方]` |
 
 ### 其他依据
