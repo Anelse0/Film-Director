@@ -1,4 +1,5 @@
-"""2.4.0 concept validator contracts: no fixed candidate count, no topic ban, research rows carry 可信范围."""
+"""Concept validator contracts (2.4.0 + 2.5.5): no fixed candidate count, no topic ban, research rows carry 可信范围;
+empty candidates fail, common titles are not plagiarism evidence."""
 import io
 import sys
 import tempfile
@@ -83,6 +84,51 @@ class ConceptValidatorTests(unittest.TestCase):
         rc, out = run("# Concept\n" + JUDGEMENT)
         self.assertEqual(rc, 1)
         self.assertIn("C01", out)
+
+    # 2.5.5 P0 fixes
+    def test_title_only_candidate_is_error(self):
+        rc, out = run("# Concept\n" + JUDGEMENT + "## 候选\n候选 〈空壳〉\n")
+        self.assertEqual(rc, 1)
+        self.assertIn("C01 候选〈空壳〉为空", out)
+
+    def test_placeholder_only_candidate_is_error(self):
+        text = "# Concept\n" + JUDGEMENT + "## 候选\n候选 〈占位〉\n一句话：\n人物：…\n观众：待补\n主控画面：-\n独特之处：无\n"
+        rc, out = run(text)
+        self.assertEqual(rc, 1)
+        self.assertIn("C01 候选〈占位〉为空", out)
+
+    def test_rejected_one_line_candidate_is_not_empty(self):
+        text = "# Concept\n" + JUDGEMENT + "## 候选\n" + cand("杯子") + "候选 〈门卡〉—— 她想进楼却没有门卡；不选因为：观众理解没有变化。\n"
+        rc, out = run(text)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("被否候选 1", out)
+
+    def test_common_title_alone_is_not_plagiarism(self):
+        for title in ("钥匙", "结婚证", "健身卡", "第一次约会"):
+            with self.subTest(title=title):
+                rc, out = run("# Concept\n" + JUDGEMENT + "## 候选\n" + cand(title))
+                self.assertEqual(rc, 0, out)
+                self.assertNotIn("C05", out)
+
+    def test_example_title_with_own_content_only_warns(self):
+        rc, out = run("# Concept\n" + JUDGEMENT + "## 候选\n" + cand("袖带"))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("C05", out)
+        self.assertNotIn("ERROR C05", out)
+
+    def test_example_title_and_content_copied_is_error(self):
+        block = ("候选 〈袖带〉\n一句话：父亲来医院复查，排到女儿的诊室；她给他绑袖带时发现袖带位置他自己已经量对了。\n"
+                 "人物：父亲选择像陌生病人一样配合。\n观众：最初尴尬 → 看见她手停后改变判断。\n"
+                 "主控画面：诊室里，她的手停在他手臂的袖带上，两人都看着血压计。\n独特之处：温度藏在流程里。\n")
+        rc, out = run("# Concept\n" + JUDGEMENT + "## 候选\n" + block)
+        self.assertEqual(rc, 1)
+        self.assertIn("ERROR C05", out)
+
+    def test_empty_required_value_warns_c09(self):
+        text = "# Concept\n" + JUDGEMENT + "## 候选\n" + cand("杯子").replace("独特之处：她还的不是钥匙，是门卡。", "独特之处：")
+        rc, out = run(text)
+        self.assertEqual(rc, 0)
+        self.assertIn("C09 候选〈杯子〉缺 独特之处", out)
 
 if __name__ == '__main__':
     unittest.main()

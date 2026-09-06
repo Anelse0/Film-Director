@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""概念卡校验（film-seedance-director S3a，2.4.0）。
+"""概念卡校验（film-seedance-director S3a，2.5.5）。
 
 用法: python3 validate_concept.py <01_concept.md> [--json]
 
 只查格式与交付完整性，不判断创意质量。候选数量不固定；集中研究一个题材不是错误。
 
 ERROR（退出码 1）:
-  C01 没有候选
+  C01 没有候选，或候选只有标题 / 全部字段为空（空候选不能通过）
   C03 研究记录的查询与示例查询几乎相同（示例不是模板）
-  C05 候选标题与工作示例候选相同
+  C05 候选标题与工作示例相同且一句话 / 主控画面也与示例重合（常见标题本身不是抄袭证据）
 
 WARN:
   C02 缺创作判断（最初理解 / 最后理解 / 独特之处 / 锁定与探索 少于 3 项）
@@ -31,7 +31,12 @@ EXAMPLE_QUERIES = [
     "情侣 分手 后 最 麻烦 的 共同 财产 共同 账户 会员 卡 怎么 处理 知乎",
     "分手 后 还要 一起 处理 的 手续 清单 实务", "情侣 分手 最麻烦 的 手续 共同 账户 合同 变更 纠纷",
 ]
-EXAMPLE_TITLES = ["家庭共享", "结婚证", "疫苗本", "五二零", "第一次约会", "浇水", "备注名", "健身卡", "钥匙", "酸奶", "代答", "登记本", "午夜签证"]
+# 工作示例（examples/concept-worked-examples.md）的候选：标题 + 内容一起比对。
+# 常见词标题（钥匙、结婚证、健身卡…）不再单独构成错误：它们不是任何人的专属。
+EXAMPLE_CANDIDATES = {
+    "两次取平均": "女儿夜班后回家，父亲已经睡了；桌上血压计的记录本里，每天都是两行数字。 厨房顶灯下，记录本翻开，两行数字，旁边是她的护士鞋。",
+    "袖带": "父亲来医院复查，排到女儿的诊室；她给他绑袖带时发现袖带位置他自己已经量对了。 诊室里，她的手停在他手臂的袖带上，两人都看着血压计。",
+}
 PLACEHOLDER = {"", "…", "...", "无", "-", "—", "略", "待补"}
 SHOT_WORDS = ["近景", "特写", "全景", "中景", "远景", "缓推", "推近", "拉远", "摇镜", "跟拍", "切到", "手持", "越肩", "俯拍", "仰拍", "镜头"]
 LOCATION_ONLY = ["发生在", "地点", "场所", "换到", "换成", "换个地方", "改在"]
@@ -58,13 +63,37 @@ def split_candidates(text):
 
 
 def field(block, name):
-    m = re.search(rf"^\s*{re.escape(name)}[^:：\n]*[:：]\s*(.*)$", block, re.M)
+    m = re.search(rf"^\s*{re.escape(name)}[^:：\n]*[:：][ \t]*(.*)$", block, re.M)  # 不让 \s 吞掉换行
     return m.group(1).strip() if m else None
 
 
+FIELD_LINE = r"^\s*(一句话|前提|反讽|基调|人物|观众|主控画面|这 ?.*拍什么|独特之处|依赖|风险|与其他候选)"
+
+
+def field_lines(block):
+    return [l for l in block.splitlines() if re.match(FIELD_LINE, l)]
+
+
 def is_full(title, block):
-    """被否候选只有一行；有 ≥ 2 个字段行的才算完整候选。"""
-    return len([l for l in block.splitlines() if re.match(r"^\s*(一句话|前提|反讽|基调|人物|观众|主控画面|这 ?.*拍什么|独特之处|依赖|风险|与其他候选)", l)]) >= 2
+    """被否候选只有一行（标题 + 一句话 + 不选理由）；有 ≥ 2 个字段行的才算完整候选。"""
+    return len(field_lines(block)) >= 2
+
+
+def is_empty(title, block):
+    """只有标题，或所有字段行的值都是占位符：空候选。"""
+    lines = block.splitlines()
+    values = [re.sub(r"^[^:：]*[:：]\s*", "", l).strip() for l in field_lines(block)]
+    head = lines[0] if lines else ""
+    after_title = re.sub(r"^\s*候选\s*\d*\s*[〈《][^〉》]+[〉》]", "", head).strip(" \t—-–:：")
+    rest = [l.strip() for l in lines[1:] if l.strip()]
+    if not rest:
+        return len(after_title) < 6  # 被否候选把一句话与理由写在标题行上，不算空
+    return bool(values) and all(v in PLACEHOLDER for v in values) and len(rest) == len(values)
+
+
+def grams(text, n=3):
+    text = re.sub(r"\s+", "", text)
+    return {text[i:i + n] for i in range(max(0, len(text) - n + 1))}
 
 
 def main(path, as_json=False):
@@ -74,24 +103,35 @@ def main(path, as_json=False):
     cands = split_candidates(text)
     if not cands:
         errors.append("C01 没有候选（需要至少 1 个「候选 〈标题〉」块）")
-    full = [(t, b) for t, b in cands if is_full(t, b)]
+    for t, b in cands:
+        if is_empty(t, b):
+            errors.append(f"C01 候选〈{t}〉为空：只有标题或所有字段为占位符，空候选不能通过")
+    full = [(t, b) for t, b in cands if is_full(t, b) and not is_empty(t, b)]
+    if cands and not full and not any(is_empty(t, b) for t, b in cands):
+        errors.append("C01 没有完整候选：每个候选块都只有一行（被否候选格式），没有任何一个可以选定的候选")
 
     # C02 创作判断
     judg = sum(1 for k in ("最初", "最后", "独特", "锁定") if re.search(k, text))
     if judg < 3:
         warns.append(f"C02 创作判断只找到 {judg}/4 项（最初理解 / 最后理解 / 独特之处 / 锁定与探索）")
 
-    # C05 titles
-    for t, _ in cands:
-        if t in EXAMPLE_TITLES and "夹具" not in text[:400]:
-            errors.append(f"C05 候选标题〈{t}〉与工作示例相同")
+    # C05 示例照搬：标题相同且内容重合才算；标题相同但内容自写只提示
+    for t, b in cands:
+        if t in EXAMPLE_CANDIDATES and "夹具" not in text[:400]:
+            own = " ".join(x for x in ((field(b, "一句话") or ""), (field(b, "主控画面") or "")) if x)
+            g_own, g_ex = grams(own), grams(EXAMPLE_CANDIDATES[t])
+            overlap = len(g_own & g_ex) / len(g_ex) if g_ex else 0
+            if own and overlap >= 0.5:
+                errors.append(f"C05 候选〈{t}〉的标题与一句话 / 主控画面都与工作示例重合（示例不是模板）")
+            else:
+                warns.append(f"C05 候选〈{t}〉与工作示例同名；内容不同不算照搬，如无意请换标题避免混淆")
 
     # per-candidate checks
     m_res = re.search(r"^#+\s*(研究记录|检索记录)|^(研究记录|检索记录)\s*$", text, re.M)
     research_text = text[m_res.start():] if m_res else ""
     imgs = []
     for t, b in full:
-        missing = [n for n in ("一句话", "人物", "观众", "主控画面", "独特之处") if field(b, n) is None]
+        missing = [n for n in ("一句话", "人物", "观众", "主控画面", "独特之处") if (field(b, n) is None or field(b, n) in PLACEHOLDER)]
         if missing:
             warns.append(f"C09 候选〈{t}〉缺 {'/'.join(missing)}")
         one = field(b, "一句话") or ""

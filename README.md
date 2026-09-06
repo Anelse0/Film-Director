@@ -11,7 +11,7 @@
 ## 流水线
 
 ```
-S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本 → S4 表演 → S5 分镜与参考资产 → S6 Prompt → S7 检查
+S1 资源读取 → S2 需求识别 → 故事开发（S3a 概念 ↔ S3b 故事 ↔ S3c 剧本）→ S4 表演 → S5 分镜与参考资产 → S6 Prompt → S7 检查
 ```
 
 可从已有材料对应阶段进入。纯表演测试走共用 S4 模块，不强制故事、参考图或停靠。可直接说“10秒，从愤怒到委屈，最后忍住眼泪”或“原文直出 Crying”。
@@ -27,7 +27,7 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本
 | `references/stage-1-intake.md` | S1 / S2：登记、任务树（R2V 核心）、项目目录 |
 | `references/concept-generation.md` | S3a 概念模式契约：创作判断 / 默认地图 / 入口 / 研究服务缺口 / 候选发展 / 试写 |
 | `references/research-to-craft.md` | S3a–S4：研究材料如何进入创作（缺口 → 发现 / 可信范围 / 影响的决定） |
-| `references/stage-3a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
+| `references/stage-3a-concept.md` | S3a 概念长什么样：素材入口 / 候选弱点 / 可选的主控句、三问与默认画面地图 / 交付格式 |
 | `references/stage-3b-story.md` | S3b 故事开发：方法 / 世界观 / 本场人物依据 / 情绪温度 / 场景清单 |
 | `references/stage-3c-script.md` | S3c：多种试写入口 / 连续交流诊断 / 节拍估时 / 物件状态 / 定点重写 |
 | `references/character-scene-development.md` | S3b–S4 共用：人物与观众责任、交流处境、声音的基础/对象/当下、分层诊断 |
