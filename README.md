@@ -1,6 +1,8 @@
 # film-seedance-director
 
-版本 **2.4.0**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含可直接使用的情绪表演库与强度/克制调节。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
+版本 **2.5.0**。影视创作 → Seedance 2.5 Prompt 的工作流 Skill；包含情绪表演库、强度/克制调节与基于交流处境的对白开发。调用：`/film-seedance-director` 或在对话中描述任务（写场景、拆分镜、转 Prompt、改成片）。
+
+2.5.0：解除逐句预排与固定回避，集中维护人物声音/对白诊断，补强道具和视点检查；不增加“自然台词”句式模板。本次按用户要求全程无子代理，验收为**非盲文本验证**，不宣称创意质量盲测胜出或成片已验证。[验收报告](tests/acceptance-2.5.0/report.md) · [30秒生产 Demo](tests/acceptance-2.5.0/demo.prompt.md)。
 
 ## 一句话
 
@@ -26,9 +28,11 @@ S1 资源读取 → S2 任务识别 → S3a 概念 → S3b 故事 → S3c 剧本
 | `references/concept-generation.md` | S3a 概念模式契约：创作判断 / 默认地图 / 入口 / 研究服务缺口 / 候选发展 / 试写 |
 | `references/research-to-craft.md` | S3a–S4：研究材料如何进入创作（缺口 → 发现 / 可信范围 / 影响的决定） |
 | `references/stage-3a-concept.md` | S3a 概念长什么样：前提 / 主控句 / 三问 / 反套路 / 交付格式 |
-| `references/stage-3b-story.md` | S3b 故事开发：方法与叙事方式 / 世界观 / 人物（怎样过一天 + 六格 + 声音四问）/ 情绪温度表 / 场景清单（含人物侧 / 观众侧） |
-| `references/stage-3c-script.md` | S3c 剧本落地：两侧问题 / 节拍表 / 先散文再链再台词 / 台词通用关 / 对白审阅 / 重写 |
-| `references/character-scene-development.md` | S3b–S4 共用：人物侧 / 观众侧问题、五种叙事方式、人物可信、人物声音四问、对白审阅 |
+| `references/stage-3b-story.md` | S3b 故事开发：方法 / 世界观 / 本场人物依据 / 情绪温度 / 场景清单 |
+| `references/stage-3c-script.md` | S3c：多种试写入口 / 连续交流诊断 / 节拍估时 / 物件状态 / 定点重写 |
+| `references/character-scene-development.md` | S3b–S4 共用：人物与观众责任、交流处境、声音的基础/对象/当下、分层诊断 |
+| `references/dialogue-observations.md` | 语言或人物有缺口时：中文交流材料、创作者方法及迁移边界 |
+| `references/dialogue-diagnostics.md` | 具体诊断困难时：局部改稿得失与反例，不是台词答案库 |
 | `references/creative-loop.md` | S3a–S5 共用：允许的回流、收到批评后先诊断层级、重写纪律、场景写作可选步骤 |
 | `references/preference-ledger.md` | 用户确认过的偏好：喜欢哪种效果 / 在哪类作品适用 / 反例；重写前先查 |
 | `references/scene-parameters.md` | 场景参数卡：六参数 → 台词 / 表演 / 分镜 / 结构 / 模型执行的规则取值；预设只是参数组合 |
@@ -82,6 +86,14 @@ python3 scripts/blind_eval.py reveal <evaldir>
 ```
 
 协议、覆盖矩阵与验收标准见 `tests/creative-eval.md`；2.4.0 的开发与验收情况见 `tests/acceptance-2.4.0.md`。自动检查负责约束与交付完整性；创意与编剧质量由用户盲选、具体文本证据和 `references/preference-ledger.md` 判断。
+
+2.5.0 用户明确选择非盲验收，详见 `tests/acceptance-2.5.0/protocol.md`、`cases.md`、`guards.md` 与 `report.md`。不调用上述盲测打包器来包装自审。复跑本次生产 Demo：
+
+```bash
+python3 scripts/validate_prompt.py tests/acceptance-2.5.0/demo.prompt.md --production-record tests/acceptance-2.5.0/demo.production.json --require-ready --json
+```
+
+W19 标点推意图提示已退役；W05 的实际台词估时仍保留。有限的嘴部/字幕/声音表面提示不负责判断自然度、连续性或成片质量。
 
 ## 项目目录约定
 

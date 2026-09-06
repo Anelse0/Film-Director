@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "adapter": "ark-seedance-2.5-guide",
+  "task": "t2v",
+  "prompt_sha256": "5c2304e2c6bb16756c667842c287777aaa05d0fbfb7cc43d686475487d998e0c",
+  "parameters": {"ratio": "16:9", "duration": 30, "output_format": "mp4"},
+  "assets": [],
+  "upstream": [{"path": "demo.upstream.md", "sha256": "84434269970153c19dec4ea2f6472c4a56536fae103cf4722603940646467140"}],
+  "reviews": [
+    {"category": "creative", "status": "reviewed", "reviewer": "main-agent-nonblind", "evidence": "非盲文本自审：追问节目变更→追问共同排练→纠正周五与今天。第01草稿无依据的‘又’已在C层形成前改掉。B的解释仍可能被读成借口，这与其擅自决定有关，不强称生活口吻已验证。不是用户批准或独立质量结论。"},
+    {"category": "performance", "status": "reviewed", "reviewer": "main-agent-nonblind", "evidence": "20–23s吸气中断、压唇、积泪、抬眼忍住有3秒发展，23–30s持续可见；最后仍呼吸未稳，不加恢复平静。近景覆盖眉眼和下颌，人物无需额外递物。具体泪水与口型执行未经视频验证。"},
+    {"category": "continuity", "status": "reviewed", "reviewer": "main-agent-nonblind", "evidence": "节目单全程在林岚右手腰侧，无灯旁→灯下式漏转移。两镜同轴侧，第二镜陈浩画外；20–30s眉眼高光无遮挡。C层正文与D字节一致另由回归检查，不以此替代本次语义审阅。"}
+  ],
+  "warning_decisions": []
+}
